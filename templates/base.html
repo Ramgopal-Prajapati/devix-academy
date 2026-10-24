@@ -473,11 +473,11 @@
     
 
 
-
     <!-- DeviX Custom Scripts -->
     <script src="{% static 'js/main.js' %}"></script>
-    {% if user.is_authenticated %}
-    {% endif %}
+    {% block extra_js %}{% endblock %}
+
+ 
     
 </body>
 </html>
