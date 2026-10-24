@@ -240,7 +240,8 @@ if has_cloudinary:
             'API_SECRET': CLOUDINARY_API_SECRET or '',
         }
 
-        INSTALLED_APPS.insert(INSTALLED_APPS.index('whitenoise.runserver_nostatic'), 'cloudinary_storage')
+        # Media uploads ke liye sirf 'cloudinary' add karein.
+        # 'cloudinary_storage' mat add karein kyunki Django 5 me ye collectstatic crash karta hai.
         INSTALLED_APPS.append('cloudinary')
     except Exception:
         pass
