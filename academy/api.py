@@ -1,5 +1,4 @@
 from rest_framework import viewsets, permissions, filters
-from django_filters.rest_framework import DjangoFilterBackend
 from academy.models import Department, Course, TrainerProfile, StudentProfile
 from attendance.models import Attendance, TrainerAttendance, LeaveRequest
 from payroll.models import SalaryRecord
