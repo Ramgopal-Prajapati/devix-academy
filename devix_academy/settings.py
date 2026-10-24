@@ -208,7 +208,15 @@ CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
 CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
 CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
 
-has_cloudinary = bool(CLOUDINARY_URL or (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET))
+# Check if cloudinary libraries are installed safely (prevents ModuleNotFoundError)
+try:
+    import cloudinary
+    import cloudinary_storage
+    has_cloudinary_lib = True
+except ImportError:
+    has_cloudinary_lib = False
+
+has_cloudinary = bool(has_cloudinary_lib and (CLOUDINARY_URL or (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET)))
 
 # Django 5 Storage Architecture (mutually exclusive with STATICFILES_STORAGE)
 STORAGES = {
@@ -222,9 +230,6 @@ STORAGES = {
 
 if has_cloudinary:
     try:
-        import cloudinary
-        import cloudinary_storage
-
         if not CLOUDINARY_URL and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
             CLOUDINARY_URL = f"cloudinary://{CLOUDINARY_API_KEY}:{CLOUDINARY_API_SECRET}@{CLOUDINARY_CLOUD_NAME}"
             os.environ['CLOUDINARY_URL'] = CLOUDINARY_URL
@@ -237,7 +242,7 @@ if has_cloudinary:
 
         INSTALLED_APPS.insert(INSTALLED_APPS.index('whitenoise.runserver_nostatic'), 'cloudinary_storage')
         INSTALLED_APPS.append('cloudinary')
-    except ImportError:
+    except Exception:
         pass
 
 # Authentication URLs
