@@ -15,26 +15,57 @@ load_dotenv(BASE_DIR / '.env')
 # Quick-start development settings - unsuitable for production
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-devix-academy-core-secret-key-2026')
 
-DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't')
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.onrender.com']
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-custom_hosts = os.getenv('ALLOWED_HOSTS')
-if custom_hosts:
-    ALLOWED_HOSTS.extend([h.strip() for h in custom_hosts.split(',') if h.strip()])
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',
+    'https://*.render.com',
     'http://127.0.0.1:8000',
     'http://localhost:8000',
+    'http://127.0.0.1',
+    'http://localhost',
 ]
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
 
 # Security headers for reverse proxy (Render / Cloud deployment)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Detailed Production Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
 
 # Application definition
 INSTALLED_APPS = [
@@ -164,22 +195,30 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_USE_FINDERS = True
 
 # Media files (Profile pictures, uploads)
-# Media files (Profile pictures, uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Cloudinary Storage using individual environment variables
+# Cloudinary Storage configuration (Supports individual variables or CLOUDINARY_URL)
 CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
 CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
 CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
 
 has_cloudinary = bool(CLOUDINARY_URL or (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET))
+
+# Django 5 Storage Architecture (mutually exclusive with STATICFILES_STORAGE)
+STORAGES = {
+    'default': {
+        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage' if has_cloudinary else 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
 
 if has_cloudinary:
     try:
@@ -198,16 +237,6 @@ if has_cloudinary:
 
         INSTALLED_APPS.insert(INSTALLED_APPS.index('whitenoise.runserver_nostatic'), 'cloudinary_storage')
         INSTALLED_APPS.append('cloudinary')
-        DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-        STORAGES = {
-            'default': {
-                'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
-            },
-            'staticfiles': {
-                'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
-            },
-        }
     except ImportError:
         pass
 
