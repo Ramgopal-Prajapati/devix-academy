@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Welcome to DeviX Academy by Ram Sir | Professional Training Institute{% endblock %}
+
+{% block public_content %}
+<!-- Modern Hero Section -->
+<section class="py-5 text-white position-relative" style="background: linear-gradient(135deg, #090f1d 0%, #0d1e3d 50%, #0a1329 100%); border-bottom: 2px solid #1d4ed8;">
+    <div class="container py-4">
+        <div class="row align-items-center gy-4">
+            <div class="col-lg-7 text-center text-lg-start">
+                
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-10 text-white small mb-3 border border-white border-opacity-10">
+                    <span class="badge bg-warning text-dark fw-bold">PRO</span>
+                    <span>Industry Tech & Professional Management Institute</span>
+                </div>
+
+                <h1 class="display-4 fw-bold text-white mb-3" style="line-height: 1.15;">
+                    Welcome to <span style="background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">DeviX Academy</span>
+                    <span class="d-block fs-3 text-warning fw-bold mt-1">by Ram Sir</span>
+                </h1>
+
+                <p class="lead text-light text-opacity-90 mb-4" style="max-width: 620px; font-size: 1.15rem; line-height: 1.6;">
+                    Accelerating tech careers in Java Full Stack Development, Data Science, AI/ML, and Web Engineering. Learn with practical project mentoring, daily evaluation, and dedicated career guidance.
+                </p>
+                
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                    <a href="#students-showcase" class="btn btn-warning btn-lg px-4 fw-bold shadow">
+                        <i class="fas fa-user-graduate me-2"></i> Explore Students Directory
+                    </a>
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg px-4 fw-semibold">
+                            <i class="fas fa-lock me-2"></i> Authorized Portal Login
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:role_redirect' %}" class="btn btn-outline-light btn-lg px-4 fw-semibold">
+                            <i class="fas fa-columns me-2"></i> Open Dashboard
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <!-- Highlight Metrics Card -->
+                <div class="card border-0 bg-dark bg-opacity-50 p-4 text-white border border-white border-opacity-10 shadow-lg" style="border-radius: 16px;">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="fw-bold mb-0 text-white"><i class="fas fa-chart-line text-warning me-2"></i> Institute Overview</h5>
+                        <span class="badge bg-primary">Live Data</span>
+                    </div>
+                    
+                    <div class="row g-3 text-center">
+                        <div class="col-4">
+                            <div class="p-3 rounded-3 bg-white bg-opacity-10 border border-white border-opacity-10">
+                                <div class="display-6 fw-bold text-white">{{ total_students }}</div>
+                                <div class="small text-light text-opacity-75 mt-1">Active Scholars</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 rounded-3 bg-white bg-opacity-10 border border-white border-opacity-10">
+                                <div class="display-6 fw-bold text-white">{{ total_trainers }}</div>
+                                <div class="small text-light text-opacity-75 mt-1">Expert Faculty</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 rounded-3 bg-white bg-opacity-10 border border-white border-opacity-10">
+                                <div class="display-6 fw-bold text-white">{{ total_courses }}</div>
+                                <div class="small text-light text-opacity-75 mt-1">Career Tracks</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 rounded-3 bg-black bg-opacity-25 small border border-white border-opacity-10">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <span>100% Practical Project Mentorship</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <span>Daily Attendance & Performance Evaluation</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <span>Direct Faculty Messaging & Course Materials</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Faculty Mentors Section (Trainers listed prominently at top) -->
+<section id="faculty-showcase" class="py-5 bg-white border-bottom">
+    <div class="container py-2">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
+            <div>
+                <span class="badge bg-warning text-dark text-uppercase px-3 py-1 mb-2 fw-bold">Distinguished Mentors</span>
+                <h2 class="fw-bold text-dark mb-1">Our Expert Faculty & Trainers</h2>
+                <p class="text-muted small mb-0">Learn directly from seasoned industry engineers, architects, and data scientists.</p>
+            </div>
+            <a href="#students-showcase" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                <i class="fas fa-arrow-down me-1"></i> Jump to Students Roster
+            </a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for trn in trainers %}
+                <div class="col">
+                    <div class="card h-100 border border-slate-300 shadow-sm rounded-3 overflow-hidden position-relative" style="border-top: 3px solid #0284c7 !important;">
+                        <div class="card-body p-4 text-center">
+                            <div class="position-relative d-inline-block mb-3">
+                                <img src="{{ trn.profile_picture_url }}" alt="{{ trn.full_name }}" class="rounded-circle border border-2 border-primary shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+                                <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-success p-1" title="Active Faculty">
+                                    <i class="fas fa-check" style="font-size: 0.65rem;"></i>
+                                </span>
+                            </div>
+
+                            <h5 class="fw-bold text-dark mb-1">{{ trn.full_name }}</h5>
+                            <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                                <span class="badge bg-light text-primary border px-2 py-1 small">{{ trn.department.name|default:"Tech Department" }}</span>
+                                <span class="badge bg-light text-muted border px-2 py-1 small">{{ trn.experience_years }} Yrs Exp</span>
+                            </div>
+
+                            {% if trn.bio %}
+                                <p class="text-muted small mb-3 text-truncate-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6rem;">
+                                    {{ trn.bio }}
+                                </p>
+                            {% endif %}
+
+                            <!-- Technologies Stack -->
+                            {% if trn.technologies %}
+                                <div class="d-flex flex-wrap gap-1 justify-content-center mb-3">
+                                    {% for tech in trn.get_technologies_list|slice:":4" %}
+                                        <span class="badge bg-slate-100 text-dark border px-2 py-1" style="font-size: 0.75rem;">{{ tech }}</span>
+                                    {% endfor %}
+                                    {% if trn.get_technologies_list|length > 4 %}
+                                        <span class="badge bg-light text-muted border px-1" style="font-size: 0.75rem;">+{{ trn.get_technologies_list|length|add:"-4" }}</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            <!-- Social Media Profiles -->
+                            <div class="pt-3 border-top d-flex align-items-center justify-content-center gap-3">
+                                {% if trn.linkedin %}
+                                    <a href="{{ trn.linkedin }}" target="_blank" rel="noopener" class="text-primary fs-5" title="LinkedIn Profile"><i class="fab fa-linkedin"></i></a>
+                                {% endif %}
+                                {% if trn.github %}
+                                    <a href="{{ trn.github }}" target="_blank" rel="noopener" class="text-dark fs-5" title="GitHub Profile"><i class="fab fa-github"></i></a>
+                                {% endif %}
+                                {% if trn.twitter %}
+                                    <a href="{{ trn.twitter }}" target="_blank" rel="noopener" class="text-dark fs-5" title="X (Twitter) Profile"><i class="fab fa-x-twitter"></i></a>
+                                {% endif %}
+                                {% if trn.instagram %}
+                                    <a href="{{ trn.instagram }}" target="_blank" rel="noopener" class="text-danger fs-5" title="Instagram Profile"><i class="fab fa-instagram"></i></a>
+                                {% endif %}
+                                {% if trn.youtube %}
+                                    <a href="{{ trn.youtube }}" target="_blank" rel="noopener" class="text-danger fs-5" title="YouTube Channel"><i class="fab fa-youtube"></i></a>
+                                {% endif %}
+                                {% if trn.website %}
+                                    <a href="{{ trn.website }}" target="_blank" rel="noopener" class="text-info fs-5" title="Personal Website"><i class="fas fa-globe"></i></a>
+                                {% endif %}
+                                {% if not trn.linkedin and not trn.github and not trn.twitter and not trn.instagram and not trn.youtube %}
+                                    <span class="text-muted small"><i class="fas fa-chalkboard-teacher me-1"></i> Verified Faculty</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center py-4">
+                    <p class="text-muted">Faculty profiles are currently being updated.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Student Showcase Section -->
+<section id="students-showcase" class="py-5" style="background-color: var(--bg-app);">
+    <div class="container py-3">
+        
+        <div class="row align-items-end mb-4 gy-3">
+            <div class="col-lg-6">
+                <span class="badge bg-primary text-uppercase px-3 py-1 mb-2">Verified Roster</span>
+                <h2 class="fw-bold text-dark mb-1">Our Enrolled Scholars</h2>
+                <p class="text-muted small mb-0">Browse through talented candidates currently mastering technologies at DeviX Academy.</p>
+            </div>
+            
+            <!-- Search & Filter Controls -->
+            <div class="col-lg-6">
+                <form method="GET" action="#students-showcase" class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                    <div class="input-group" style="max-width: 250px;">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="q" class="form-control form-control-sm border-start-0" placeholder="Search student name..." value="{{ search_query }}">
+                    </div>
+
+                    <select name="course" class="form-select form-select-sm" style="max-width: 210px;" onchange="this.form.submit()">
+                        <option value="">All Career Tracks</option>
+                        {% for c in courses %}
+                            <option value="{{ c.id }}" {% if selected_course == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button class="btn btn-primary btn-sm px-3" type="submit">
+                        Filter
+                    </button>
+
+                    {% if search_query or selected_course %}
+                        <a href="{% url 'public_home' %}#students-showcase" class="btn btn-light btn-sm border" title="Clear Filters">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- Responsive Grid of Students -->
+        <!-- SECURITY NOTICE: Renders ONLY avatar, name, and enrolled course. No contact or sensitive info exposed. -->
+        {% if page_obj.object_list %}
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-md-4">
+                {% for student in page_obj.object_list %}
+                    <div class="col">
+                        <div class="public-student-card h-100">
+                            <img src="{{ student.profile_picture_url }}" alt="{{ student.name }}" loading="lazy">
+                            <h5 class="fw-bold text-dark mb-1 fs-6 text-truncate" title="{{ student.name }}">{{ student.name }}</h5>
+                            <div class="mt-2">
+                                <span class="badge bg-light text-primary border py-1 px-2 small d-inline-block text-truncate" style="max-width: 100%;">
+                                    <i class="fas fa-graduation-cap me-1"></i>
+                                    {{ student.course.name|default:"Skill Track" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+                <nav class="mt-5" aria-label="Students pagination">
+                    <ul class="pagination justify-content-center gap-1">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link rounded border shadow-sm" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}#students-showcase">&laquo;</a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active"><span class="page-link rounded border shadow-sm fw-bold">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link rounded border shadow-sm" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}#students-showcase">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link rounded border shadow-sm" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}#students-showcase">&raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+
+        {% else %}
+            <div class="card border-0 shadow-sm p-5 text-center my-4">
+                <div class="stat-icon blue mx-auto mb-3"><i class="fas fa-search"></i></div>
+                <h5 class="fw-bold">No Students Found</h5>
+                <p class="text-muted small">No active students match your search criteria.</p>
+                <div>
+                    <a href="{% url 'public_home' %}#students-showcase" class="btn btn-outline-primary btn-sm">Reset All Filters</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

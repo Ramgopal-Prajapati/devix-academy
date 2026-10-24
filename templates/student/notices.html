@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Leave & Holiday Notices | DeviX Academy{% endblock %}
+{% block page_title %}Leave & Holiday Notices{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="fas fa-bullhorn text-warning me-2"></i> Faculty Leave & Holiday Notices</h4>
+        <p class="text-muted small mb-0">Official updates regarding mentor leaves, batch holidays, and rescheduled lab sessions.</p>
+    </div>
+    {% if trainer %}
+        <div class="d-flex align-items-center gap-2 bg-white px-3 py-2 rounded-3 border shadow-sm">
+            <img src="{{ trainer.profile_picture_url }}" alt="{{ trainer.full_name }}" class="rounded-circle" width="34" height="34" style="object-fit: cover;">
+            <div class="small">
+                <span class="text-muted">Mentor:</span>
+                <strong>{{ trainer.full_name }}</strong>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% if notices %}
+    <div class="row g-4">
+        {% for notice in notices %}
+            <div class="col-lg-6">
+                <div class="card border h-100 overflow-hidden {% if notice.notice_type == 'LEAVE' %}border-start border-4 border-danger{% elif notice.notice_type == 'HOLIDAY' %}border-start border-4 border-warning{% else %}border-start border-4 border-primary{% endif %}">
+                    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            {% if notice.notice_type == 'LEAVE' %}
+                                <span class="badge bg-danger-subtle text-danger px-2 py-1"><i class="fas fa-user-clock me-1"></i> Trainer On Leave</span>
+                            {% elif notice.notice_type == 'HOLIDAY' %}
+                                <span class="badge bg-warning-subtle text-warning px-2 py-1"><i class="fas fa-calendar-day me-1"></i> Institute Holiday</span>
+                            {% else %}
+                                <span class="badge bg-primary-subtle text-primary px-2 py-1"><i class="fas fa-bell me-1"></i> Class Notice</span>
+                            {% endif %}
+                            <span class="text-muted small">&bull; {{ notice.created_at|date:"d M Y" }}</span>
+                        </div>
+                        <span class="badge bg-success-subtle text-success small"><i class="fas fa-check me-1"></i> Up to Date</span>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-2">{{ notice.title }}</h5>
+
+                        {% if notice.from_date or notice.to_date %}
+                            <div class="p-2 px-3 bg-light rounded-3 mb-3 small d-inline-flex align-items-center gap-2 border">
+                                <i class="fas fa-calendar-alt text-primary"></i>
+                                <strong>Date Range:</strong>
+                                <span>{{ notice.from_date|date:"d M Y" }} {% if notice.to_date %} &rarr; {{ notice.to_date|date:"d M Y" }}{% endif %}</span>
+                            </div>
+                        {% endif %}
+
+                        <div class="text-secondary small" style="white-space: pre-wrap; line-height: 1.6;">{{ notice.message }}</div>
+                    </div>
+
+                    <div class="card-footer bg-light p-3 border-top d-flex justify-content-between align-items-center small text-muted">
+                        <span>Issued by: <strong>{{ notice.trainer.full_name }}</strong></span>
+                        <span>{{ notice.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center text-muted my-4">
+        <i class="fas fa-calendar-check fa-4x text-success mb-3 opacity-75"></i>
+        <h5 class="fw-bold text-dark">No Active Leave or Holiday Notices</h5>
+        <p class="small text-muted mb-0">Your mentor has not posted any leave notifications. All upcoming sessions are scheduled as normal.</p>
+    </div>
+{% endif %}
+{% endblock %}

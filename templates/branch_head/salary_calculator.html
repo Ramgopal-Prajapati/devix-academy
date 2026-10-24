@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}Payroll Calculator | DeviX Academy{% endblock %}
+{% block page_title %}Trainer Salary Calculator & Payroll{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Form Column -->
+    <div class="col-lg-5">
+        <div class="card border border-slate-300 shadow-sm rounded-4 overflow-hidden" style="border-top: 3px solid #1d4ed8 !important;">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-calculator text-primary me-2"></i> Salary Computation Engine</h5>
+                <span class="text-muted small">Auto-deductions for full day leaves, half days & absences</span>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Select Faculty Trainer <span class="text-danger">*</span></label>
+                        {{ form.trainer }}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Payroll Month</label>
+                            {{ form.month }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Year</label>
+                            {{ form.year }}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Working Days</label>
+                            {{ form.working_days }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Paid Leave Cap</label>
+                            {{ form.max_paid_leaves }}
+                            <div class="form-text small" style="font-size: 0.72rem;">0 = Deduct all leaves as per policy.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Salary Remarks / Notes</label>
+                        {{ form.notes }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" name="calculate_preview" class="btn btn-primary fw-bold">
+                            <i class="fas fa-search-dollar me-2"></i> Calculate &amp; Preview Salary
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview / Calculation Breakdown Column -->
+    <div class="col-lg-7">
+        {% if calc %}
+            <div class="card border border-slate-300 shadow-sm rounded-4 overflow-hidden" style="border-top: 3px solid #16a34a !important;">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="mb-0 fw-bold text-dark">{{ calc.trainer.full_name }}</h5>
+                        <span class="text-muted small">Payroll for {{ calc.month_name }} {{ calc.year }} &bull; {{ calc.trainer.trainer_id }}</span>
+                    </div>
+                    <span class="badge bg-success text-white px-3 py-2">Calculation Ready</span>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Metric Highlights -->
+                    <div class="row g-3 mb-4 text-center">
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">Monthly Gross</span>
+                                <div class="fs-4 fw-bold text-dark mt-1">₹{{ calc.monthly_salary|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">Per-Day Rate</span>
+                                <div class="fs-4 fw-bold text-primary mt-1">₹{{ calc.per_day_salary|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-success-subtle rounded-3 border border-success border-opacity-25">
+                                <span class="text-success small text-uppercase fw-semibold" style="font-size: 0.72rem;">Net Payable</span>
+                                <div class="fs-4 fw-bold text-success mt-1">₹{{ calc.net_salary|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Computation Formula Table -->
+                    <h6 class="fw-bold text-dark mb-3"><i class="fas fa-list-check text-primary me-2"></i> Itemized Salary &amp; Deductions Breakdown:</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered table-sm align-middle small mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="bg-light fw-bold" style="width: 55%;">Total Billable Working Days in Month</td>
+                                    <td class="fw-bold">{{ calc.working_days }} Days</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-light fw-semibold">Daily Salary Rate (Gross &divide; Working Days)</td>
+                                    <td class="fw-bold text-primary">₹{{ calc.per_day_salary|floatformat:2 }} / day</td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-light fw-semibold">Days Fully Present</td>
+                                    <td class="text-success fw-bold">{{ calc.present_days }} Days</td>
+                                </tr>
+
+                                <!-- Itemized Deductions -->
+                                <tr>
+                                    <td class="bg-light fw-semibold">
+                                        <i class="fas fa-plane-departure text-warning me-1"></i> Full Day Approved Leaves (1.0 day rate deduction)
+                                    </td>
+                                    <td class="text-danger fw-bold">
+                                        {{ calc.full_day_leaves }} Day(s) &bull; &minus; ₹{{ calc.full_day_leave_amount|floatformat:2 }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-light fw-semibold">
+                                        <i class="fas fa-adjust text-warning me-1"></i> Half Day Approved Leaves (0.5 day rate deduction)
+                                    </td>
+                                    <td class="text-danger fw-bold">
+                                        {{ calc.half_day_leaves }} Slot(s) &bull; &minus; ₹{{ calc.half_day_leave_amount|floatformat:2 }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-light fw-semibold">
+                                        <i class="fas fa-user-clock text-danger me-1"></i> Half Day Punch Penalties (&gt;20m late/early exit)
+                                    </td>
+                                    <td class="text-danger fw-bold">
+                                        {{ calc.half_day_punches }} Time(s) &bull; &minus; ₹{{ calc.half_day_punch_amount|floatformat:2 }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="bg-light fw-semibold">
+                                        <i class="fas fa-times-circle text-danger me-1"></i> Unapproved Absent Days
+                                    </td>
+                                    <td class="text-danger fw-bold">
+                                        {{ calc.absent_days }} Day(s) &bull; &minus; ₹{{ calc.absent_amount|floatformat:2 }}
+                                    </td>
+                                </tr>
+                                <tr class="table-danger">
+                                    <td class="fw-bold fs-6">Total Days Deducted / Amount Deducted</td>
+                                    <td class="fw-bold fs-6 text-danger">{{ calc.total_deduction_days }} Days &bull; &minus; ₹{{ calc.deduction|floatformat:2 }}</td>
+                                </tr>
+                                <tr class="table-success">
+                                    <td class="fw-bold fs-5">Final Net Payable Salary</td>
+                                    <td class="fw-bold fs-5 text-success">₹{{ calc.net_salary|floatformat:2 }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Policy Rule Notice -->
+                    <div class="alert alert-info small mb-4">
+                        <i class="fas fa-info-circle me-1"></i> <strong>DeviX Payroll Formula:</strong>
+                        <code>Per_Day = Monthly_Salary &divide; Working_Days</code> &bull;
+                        <code>Deduction = (Full_Leaves &times; 1.0 + Half_Leaves &times; 0.5 + Half_Day_Punches &times; 0.5 + Absences &times; 1.0) &times; Per_Day</code> &bull;
+                        <code>Net_Salary = Monthly_Salary &minus; Deduction</code>
+                    </div>
+
+                    <!-- Save & Issue Slip Button Form -->
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="trainer" value="{{ calc.trainer.id }}">
+                        <input type="hidden" name="month" value="{{ calc.month }}">
+                        <input type="hidden" name="year" value="{{ calc.year }}">
+                        <input type="hidden" name="working_days" value="{{ calc.working_days }}">
+                        <input type="hidden" name="max_paid_leaves" value="0">
+                        <input type="hidden" name="notes" value="Processed via DeviX Academy Automated Payroll Engine">
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="submit" name="save_salary" class="btn btn-success btn-lg px-4 shadow-sm fw-bold">
+                                <i class="fas fa-file-invoice-dollar me-2"></i> Save Record &amp; Generate Salary Slip
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <div class="card border border-slate-300 shadow-sm rounded-4 p-5 text-center text-muted h-100 d-flex align-items-center justify-content-center">
+                <div>
+                    <i class="fas fa-receipt fa-4x text-secondary mb-3 opacity-50"></i>
+                    <h5 class="fw-bold text-dark">No Calculation Selected</h5>
+                    <p class="small text-muted mb-0">Select a faculty trainer and payroll month on the left to preview attendance calculation.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

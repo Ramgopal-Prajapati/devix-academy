@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply for Leave | DeviX Academy{% endblock %}
+{% block page_title %}Faculty Leave Management{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Leave Application Form -->
+    <div class="col-lg-5">
+        <div class="card border border-slate-300 shadow-sm rounded-4 overflow-hidden" style="border-top: 3px solid #d97706 !important;">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-plane-departure text-warning me-2"></i> Apply For Leave</h5>
+                <span class="text-muted small">Select Full Day (1 day deduction) or Half Day (0.5 day deduction)</span>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" novalidate id="leaveForm">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Leave Duration Type <span class="text-danger">*</span></label>
+                        {{ form.leave_duration_type }}
+                        {% if form.leave_duration_type.errors %}<div class="text-danger small">{{ form.leave_duration_type.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3" id="halfDayPeriodRow" style="display: none;">
+                        <label class="form-label small fw-bold">Half Day Slot</label>
+                        {{ form.half_day_period }}
+                        {% if form.half_day_period.errors %}<div class="text-danger small">{{ form.half_day_period.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6" id="fromDateCol">
+                            <label class="form-label small fw-bold" id="fromDateLabel">Date / Start Date <span class="text-danger">*</span></label>
+                            {{ form.from_date }}
+                            {% if form.from_date.errors %}<div class="text-danger small">{{ form.from_date.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6" id="toDateCol">
+                            <label class="form-label small fw-bold">To Date <span class="text-danger">*</span></label>
+                            {{ form.to_date }}
+                            {% if form.to_date.errors %}<div class="text-danger small">{{ form.to_date.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger small py-2">{{ form.non_field_errors.0 }}</div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Reason For Leave <span class="text-danger">*</span></label>
+                        {{ form.reason }}
+                        {% if form.reason.errors %}<div class="text-danger small">{{ form.reason.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="alert alert-info py-2 small mb-4">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Salary Policy:</strong> Approved leaves incur a salary deduction calculated at per-day rate (Full Day = 1.0 day; Half Day = 0.5 day).
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning fw-bold shadow-sm">
+                            <i class="fas fa-paper-plane me-1"></i> Submit Leave Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Request History Table -->
+    <div class="col-lg-7">
+        <div class="card border border-slate-300 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-history text-primary me-2"></i> My Leave Applications History</h6>
+                <span class="badge bg-light text-dark border">{{ leave_history.count }} Requests</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table custom-table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Type &amp; Dates</th>
+                                <th>Deduction</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Review Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in leave_history %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark">
+                                            {% if leave.leave_duration_type == 'HALF_DAY' %}
+                                                <span class="badge bg-warning text-dark me-1">Half Day</span>
+                                                {{ leave.from_date|date:"d M Y" }} ({{ leave.get_half_day_period_display|default:"Half Day" }})
+                                            {% else %}
+                                                <span class="badge bg-primary text-white me-1">Full Day</span>
+                                                {{ leave.from_date|date:"d M Y" }} to {{ leave.to_date|date:"d M Y" }}
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-muted small mt-1">Applied: {{ leave.applied_on|date:"d M, h:i A" }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">{{ leave.total_days }} Day(s)</span>
+                                    </td>
+                                    <td>
+                                        <div style="max-width: 200px;">{{ leave.reason }}</div>
+                                    </td>
+                                    <td>
+                                        {% if leave.status == 'Approved' %}
+                                            <span class="badge-present">Approved</span>
+                                        {% elif leave.status == 'Pending' %}
+                                            <span class="badge-leave">Pending</span>
+                                        {% else %}
+                                            <span class="badge-absent">Rejected</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if leave.remark %}
+                                            <div class="small text-secondary">{{ leave.remark }}</div>
+                                        {% else %}
+                                            <span class="text-muted small">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No leave applications recorded yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const durationSelect = document.getElementById('id_leave_duration_type');
+    const halfDayRow = document.getElementById('halfDayPeriodRow');
+    const toDateCol = document.getElementById('toDateCol');
+    const fromDateLabel = document.getElementById('fromDateLabel');
+
+    function toggleDurationFields() {
+        if (!durationSelect) return;
+        if (durationSelect.value === 'HALF_DAY') {
+            halfDayRow.style.display = 'block';
+            toDateCol.style.display = 'none';
+            fromDateLabel.innerHTML = 'Leave Date <span class="text-danger">*</span>';
+        } else {
+            halfDayRow.style.display = 'none';
+            toDateCol.style.display = 'block';
+            fromDateLabel.innerHTML = 'From Date <span class="text-danger">*</span>';
+        }
+    }
+
+    durationSelect.addEventListener('change', toggleDurationFields);
+    toggleDurationFields();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ student.name }} | Assigned Student{% endblock %}
+{% block page_title %}Student Details{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Student Summary Card -->
+    <div class="col-lg-4">
+        <div class="card border text-center p-4" style="border-top: 3px solid #1d4ed8 !important;">
+            <div class="position-relative mx-auto mb-3">
+                <img src="{{ student.profile_picture_url }}" alt="{{ student.name }}" class="rounded-circle shadow-sm" width="120" height="120" style="object-fit: cover; border: 4px solid #eff6ff;">
+            </div>
+            <h4 class="fw-bold mb-1">{{ student.name }}</h4>
+            <div class="badge bg-primary font-monospace mb-2">{{ student.student_id }}</div>
+            <div class="text-muted small mb-3">{{ student.course.name }}</div>
+
+            <!-- Attendance Eligibility Status -->
+            {% if stats.is_eligible %}
+                <div class="certificate-banner-eligible text-start mb-3 p-3 rounded-3">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="fas fa-check-circle fs-5"></i>
+                        <span class="fw-bold">Certificate Eligible</span>
+                    </div>
+                    <div class="small text-white-50">Current attendance is {{ stats.percentage }}% (&ge; 75%).</div>
+                </div>
+            {% else %}
+                <div class="certificate-banner-ineligible text-start mb-3 p-3 rounded-3">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="fas fa-exclamation-triangle fs-5"></i>
+                        <span class="fw-bold">Ineligible for Certificate</span>
+                    </div>
+                    <div class="small text-white-50">Current attendance is {{ stats.percentage }}% (&lt; 75%).</div>
+                </div>
+            {% endif %}
+
+            <div class="p-3 bg-light rounded-3 text-start small mb-3">
+                <div class="mb-2"><strong>Email:</strong> <span class="text-secondary">{{ student.email }}</span></div>
+                <div class="mb-2"><strong>Phone:</strong> <span class="text-secondary">{{ student.phone }}</span></div>
+                <div class="mb-2"><strong>Class:</strong> <span class="text-secondary">{{ student.student_class|default:"Standard" }}</span></div>
+                <div class="mb-2"><strong>Duration:</strong> <span class="text-secondary">{% if student.course_duration %}{{ student.course_duration }}{% elif student.course %}{{ student.course.duration }}{% else %}N/A{% endif %}</span></div>
+                <div><strong>Start Date:</strong> <span class="text-secondary">{{ student.start_date|date:"d M Y" }}</span></div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <a href="{% url 'trainer:message_student' %}?student={{ student.id }}" class="btn btn-primary btn-sm shadow-sm">
+                    <i class="fas fa-paper-plane me-1"></i> Send Material / PDF to Student
+                </a>
+                <a href="{% url 'trainer:mark_student_attendance' %}" class="btn btn-outline-success btn-sm">
+                    <i class="fas fa-clipboard-check me-1"></i> Mark Today's Attendance
+                </a>
+                <a href="{% url 'trainer:student_list' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Back to My Students
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Breakdown & History -->
+    <div class="col-lg-8">
+        <!-- Counters -->
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+                    <div class="text-muted small text-uppercase fw-semibold">Total Days</div>
+                    <div class="display-6 fw-bold text-dark mt-1">{{ stats.total }}</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+                    <div class="text-muted small text-uppercase fw-semibold">Present</div>
+                    <div class="display-6 fw-bold text-success mt-1">{{ stats.present }}</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card border-0 shadow-sm rounded-4 p-3 text-center">
+                    <div class="text-muted small text-uppercase fw-semibold">Absent</div>
+                    <div class="display-6 fw-bold text-danger mt-1">{{ stats.absent }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Logs Table -->
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-calendar-check text-primary me-2"></i> Attendance Log History</h6>
+                <span class="badge bg-light text-dark border">{{ attendance_records.count }} Logs</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+                    <table class="table custom-table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Day</th>
+                                <th>Status</th>
+                                <th>Marked By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for att in attendance_records %}
+                                <tr>
+                                    <td class="fw-medium">{{ att.date|date:"d M Y" }}</td>
+                                    <td class="text-muted">{{ att.date|date:"l" }}</td>
+                                    <td>
+                                        {% if att.status == 'Present' %}
+                                            <span class="badge-present">Present</span>
+                                        {% else %}
+                                            <span class="badge-absent">Absent</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted small">{{ att.marked_by.username|default:"System" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No attendance marked yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

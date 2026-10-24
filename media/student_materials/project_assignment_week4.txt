@@ -1,0 +1,8 @@
+DeviX Academy - Individual Student Assignment & Project Brief
+Recipient: Student Scholar
+Instructor: Rahul Sharma (TRN-001)
+
+Assignment Overview:
+Please review the attached project specifications and prepare the module architecture diagram.
+Submission Deadline: Next Friday at 5:00 PM.
+Repository link: https://github.com/rahul-devix/fullstack-starter

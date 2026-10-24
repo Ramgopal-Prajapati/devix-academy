@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: devix-academy
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn devix_academy.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: WEB_CONCURRENCY
+        value: "4"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: devix-postgres
+          property: connectionString
+
+databases:
+  - name: devix-postgres
+    databaseName: devix_db
+    user: devix_user
+    plan: free

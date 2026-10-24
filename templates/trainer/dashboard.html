@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trainer Dashboard | DeviX Academy{% endblock %}
+{% block page_title %}Trainer Dashboard{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div class="card border-0 mb-4 text-white p-4" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%); border-radius: 16px; box-shadow: var(--shadow-md);">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <img src="{{ trainer.profile_picture_url }}" alt="{{ trainer.full_name }}" class="rounded-circle border border-3 border-white shadow" width="70" height="70" style="object-fit: cover;">
+            <div>
+                <h4 class="fw-bold mb-1">Welcome, {{ trainer.full_name }}!</h4>
+                <div class="text-white-50 small">
+                    <span class="badge bg-white text-dark me-2 font-monospace">{{ trainer.trainer_id }}</span>
+                    <span>{{ trainer.department.name|default:"General" }} Faculty &bull; DeviX Academy</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-black bg-opacity-25 p-3 rounded-3 border border-white border-opacity-10 text-white" style="min-width: 290px;">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-white-50"><i class="fas fa-clock text-warning me-1"></i> Shift Target</span>
+                <span class="badge bg-light text-dark fw-bold">{{ trainer.daily_working_hours }} Hours / Day</span>
+            </div>
+            <div class="small text-white-50 mb-3">
+                Expected In: <strong class="text-white">{{ trainer.expected_start_time|time:"h:i A" }}</strong> &bull; Grace: 20 mins
+            </div>
+
+            {% if not today_att %}
+                <form method="POST" action="{% url 'trainer:mark_my_attendance' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning w-100 fw-bold shadow">
+                        <i class="fas fa-sign-in-alt me-2"></i> Morning Punch In
+                    </button>
+                </form>
+            {% elif today_att and not today_att.check_out %}
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="badge {% if today_att.status == 'Half_Day' %}bg-warning text-dark{% else %}bg-success{% endif %} py-1 px-2">
+                        {{ today_att.status }} (In: {{ today_att.check_in|time:"h:i A" }})
+                    </span>
+                    <span class="text-white-50 small">Active Shift</span>
+                </div>
+                {% if today_att.status == 'Half_Day' %}
+                    <div class="alert alert-warning py-1 px-2 small mb-2 text-dark" style="font-size: 0.72rem;">
+                        <i class="fas fa-exclamation-triangle me-1"></i> {{ today_att.remark }}
+                    </div>
+                {% endif %}
+                <form method="POST" action="{% url 'trainer:punch_out' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger w-100 fw-bold shadow">
+                        <i class="fas fa-sign-out-alt me-2"></i> Evening Punch Out
+                    </button>
+                </form>
+            {% else %}
+                <div class="badge bg-success w-100 py-2 mb-1 text-white">
+                    <i class="fas fa-check-circle me-1"></i> Shift Concluded
+                </div>
+                <div class="small text-white-50 text-center">
+                    In: {{ today_att.check_in|time:"h:i A" }} &bull; Out: {{ today_att.check_out|time:"h:i A" }}
+                    <div class="text-white fw-bold mt-1">Logged: {{ today_att.working_hours_recorded }} Hours ({{ today_att.status }})</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Metric Stat Cards -->
+<div class="row g-3 mb-4">
+    <!-- My Students Count -->
+    <div class="col-6 col-lg-3">
+        <a href="{% url 'trainer:student_list' %}" class="text-decoration-none">
+            <div class="stat-card stat-card-clickable h-100 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 p-3" style="border-top: 3px solid #1d4ed8 !important;">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">My Students</div>
+                    <div class="fs-3 fw-bold text-dark mt-1">{{ my_students_count }}</div>
+                    <span class="badge bg-light text-primary border mt-1 small">Assigned</span>
+                </div>
+                <div class="stat-icon blue">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Today's Attendance -->
+    <div class="col-6 col-lg-3">
+        <div class="stat-card h-100 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 p-3" style="border-top: 3px solid #059669 !important;">
+            <div>
+                <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">My Attendance</div>
+                <div class="fs-4 fw-bold mt-1 {% if today_att %}text-success{% else %}text-danger{% endif %}">
+                    {% if today_att %}Present{% else %}Not Marked{% endif %}
+                </div>
+                <span class="text-muted small" style="font-size: 0.75rem;">{{ today|date:"d M Y" }}</span>
+            </div>
+            <div class="stat-icon {% if today_att %}green{% else %}amber{% endif %}">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approved Leaves -->
+    <div class="col-6 col-lg-3">
+        <a href="{% url 'trainer:apply_leave' %}" class="text-decoration-none">
+            <div class="stat-card stat-card-clickable h-100 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 p-3" style="border-top: 3px solid #0284c7 !important;">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">Leaves (Month)</div>
+                    <div class="fs-3 fw-bold text-dark mt-1">{{ approved_leave_days }} <span class="fs-6 text-muted fw-normal">days</span></div>
+                    <span class="badge bg-light text-info border mt-1 small">Approved</span>
+                </div>
+                <div class="stat-icon cyan">
+                    <i class="fas fa-plane-departure"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Student Attendance Today -->
+    <div class="col-6 col-lg-3">
+        <a href="{% url 'trainer:mark_student_attendance' %}" class="text-decoration-none">
+            <div class="stat-card stat-card-clickable h-100 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 p-3" style="border-top: 3px solid #7c3aed !important;">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">Roll Call Today</div>
+                    <div class="fs-3 fw-bold text-dark mt-1">{{ recent_student_att_count }}/{{ my_students_count }}</div>
+                    <span class="badge bg-light text-success border mt-1 small">Mark Daily</span>
+                </div>
+                <div class="stat-icon purple">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Quick Shortcuts Grid -->
+<div class="row g-4">
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="stat-icon blue rounded-circle">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Enroll Student</h5>
+                    <div class="text-muted small">Add a new student to your batch</div>
+                </div>
+            </div>
+            <p class="text-muted small">Auto-generates student ID and secure initial credentials with printable card.</p>
+            <a href="{% url 'trainer:student_add' %}" class="btn btn-outline-primary btn-sm mt-auto">Enroll Student &rarr;</a>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="stat-icon green rounded-circle">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Mark Attendance</h5>
+                    <div class="text-muted small">Day-wise roll call</div>
+                </div>
+            </div>
+            <p class="text-muted small">Mark your students Present or Absent with date selector and quick bulk mark toggle.</p>
+            <a href="{% url 'trainer:mark_student_attendance' %}" class="btn btn-outline-success btn-sm mt-auto">Mark Roll Call &rarr;</a>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="stat-icon amber rounded-circle">
+                    <i class="fas fa-plane-departure"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Apply For Leave</h5>
+                    <div class="text-muted small">Leave status & requests</div>
+                </div>
+            </div>
+            <p class="text-muted small">Submit dates and reasons for upcoming leaves and check Branch Head review status.</p>
+            <a href="{% url 'trainer:apply_leave' %}" class="btn btn-outline-warning btn-sm mt-auto">Apply Now &rarr;</a>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="stat-icon amber rounded-circle">
+                    <i class="fas fa-bullhorn"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Leave & Holiday Notice</h5>
+                    <div class="text-muted small">Broadcast to assigned students</div>
+                </div>
+            </div>
+            <p class="text-muted small">Send leave messages or holiday notifications that automatically show in student portals.</p>
+            <a href="{% url 'trainer:notice_list' %}" class="btn btn-outline-warning btn-sm mt-auto">Post Student Notice &rarr;</a>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="stat-icon purple rounded-circle">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Direct Student Messages</h5>
+                    <div class="text-muted small">Send PDFs, links & materials</div>
+                </div>
+            </div>
+            <p class="text-muted small">Deliver individualized learning files, assignment instructions, and reference links to specific students.</p>
+            <a href="{% url 'trainer:message_student' %}" class="btn btn-outline-primary btn-sm mt-auto">Send Material &rarr;</a>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="stat-icon green rounded-circle">
+                    <i class="fas fa-book-reader"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0">Course Resources</h5>
+                    <div class="text-muted small">Add curriculum study assets</div>
+                </div>
+            </div>
+            <p class="text-muted small">Upload files, links, or code notes visible to all students enrolled in the selected course track.</p>
+            <a href="{% url 'trainer:resource_list' %}" class="btn btn-outline-success btn-sm mt-auto">Manage Resources &rarr;</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

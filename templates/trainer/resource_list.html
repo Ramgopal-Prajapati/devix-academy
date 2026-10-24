@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Course Learning Resources | DeviX Academy{% endblock %}
+{% block page_title %}Course Learning Resources{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Learning Resources & Materials</h4>
+        <p class="text-muted small mb-0">Publish course materials (PDFs, Documentation Links, and Code Notes) accessible exclusively to students enrolled in that specific course.</p>
+    </div>
+    <a href="{% url 'trainer:resource_create' %}" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus me-1"></i> Add Learning Resource
+    </a>
+</div>
+
+<!-- Course Filter -->
+<div class="card border mb-4">
+    <div class="card-body p-3">
+        <form method="GET" class="d-flex gap-2 align-items-center" style="max-width: 450px;">
+            <select name="course" class="form-select" onchange="this.form.submit()">
+                <option value="">All Courses</option>
+                {% for c in courses %}
+                    <option value="{{ c.id }}" {% if selected_course == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+            {% if selected_course %}
+                <a href="{% url 'trainer:resource_list' %}" class="btn btn-outline-secondary" title="Clear Filter"><i class="fas fa-times"></i></a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card border overflow-hidden">
+    <div class="table-responsive">
+        <table class="table custom-table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Resource Title</th>
+                    <th>Course Track</th>
+                    <th>Format</th>
+                    <th>Content / Link / File</th>
+                    <th>Uploaded On</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in resources %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">{{ res.title }}</div>
+                            <div class="text-muted small text-truncate" style="max-width: 280px;">{{ res.description }}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary-subtle text-primary border border-primary border-opacity-25">{{ res.course.name }}</span>
+                            <div class="text-muted" style="font-size: 0.72rem;">{{ res.department.name }}</div>
+                        </td>
+                        <td>
+                            {% if res.resource_type == 'FILE' %}
+                                <span class="badge bg-danger-subtle text-danger"><i class="fas fa-file-pdf me-1"></i> File / PDF</span>
+                            {% elif res.resource_type == 'LINK' %}
+                                <span class="badge bg-info-subtle text-info"><i class="fas fa-link me-1"></i> Web Link</span>
+                            {% else %}
+                                <span class="badge bg-purple-subtle text-purple" style="color: #6b21a8; background-color: #f3e8ff;"><i class="fas fa-code me-1"></i> Notes / Code</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if res.file %}
+                                <a href="{{ res.file.url }}" target="_blank" class="btn btn-sm btn-outline-danger py-0 px-2 small">
+                                    <i class="fas fa-download me-1"></i> {{ res.file_filename }}
+                                </a>
+                            {% endif %}
+                            {% if res.link_url %}
+                                <a href="{{ res.link_url }}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2 small text-truncate" style="max-width: 180px;">
+                                    <i class="fas fa-external-link-alt me-1"></i> Open Link
+                                </a>
+                            {% endif %}
+                            {% if res.notes_content %}
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 small" data-bs-toggle="modal" data-bs-target="#notesModal{{ res.id }}">
+                                    <i class="fas fa-eye me-1"></i> View Snippet
+                                </button>
+
+                                <!-- Notes Modal -->
+                                <div class="modal fade" id="notesModal{{ res.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                                        <div class="modal-content border-0 shadow">
+                                            <div class="modal-header bg-dark text-white">
+                                                <h6 class="modal-title">{{ res.title }} - Lecture Notes</h6>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body p-4">
+                                                <pre class="bg-light p-3 rounded font-monospace small mb-0" style="white-space: pre-wrap;">{{ res.notes_content }}</pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="small text-muted">{{ res.created_at|date:"d M Y" }}</div>
+                        </td>
+                        <td class="text-end">
+                            <form method="POST" action="{% url 'trainer:resource_delete' res.pk %}" class="d-inline" onsubmit="return confirm('Delete this resource?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Resource">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="fas fa-folder-open fa-3x mb-3 text-secondary opacity-50"></i>
+                            <div class="fw-bold">No learning resources uploaded yet</div>
+                            <p class="small text-muted">Add course materials to share with enrolled candidates.</p>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

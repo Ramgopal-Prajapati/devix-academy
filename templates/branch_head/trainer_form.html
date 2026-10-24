@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} | DeviX Academy{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card border" style="border-top: 3px solid #7c3aed !important;">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h5 class="mb-0 fw-bold">{{ title }}</h5>
+                <a href="{% url 'branch_head:trainer_list' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to List
+                </a>
+            </div>
+            
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Avatar Preview Box -->
+                    <div class="text-center mb-4">
+                        <div class="avatar-preview-box mb-2">
+                            <img id="avatarPreview" src="{% if trainer and trainer.profile_picture %}{{ trainer.profile_picture.url }}{% else %}{% static 'images/default-trainer.svg' %}{% endif %}" alt="Trainer Photo">
+                            <label for="id_profile_picture" class="avatar-edit-label" title="Upload Photo">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                        </div>
+                        <span class="text-muted small">Allowed: JPG, PNG, WEBP (Max 5MB)</span>
+                        <div style="display: none;">
+                            {{ form.profile_picture }}
+                        </div>
+                        {% if form.profile_picture.errors %}
+                            <div class="text-danger small mt-1">{{ form.profile_picture.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">1. Account & Identification</h6>
+                    <div class="row g-3 mb-4">
+                        {% if form.username %}
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Login Username <span class="text-danger">*</span></label>
+                                {{ form.username }}
+                                {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors.0 }}</div>{% endif %}
+                            </div>
+                        {% endif %}
+                        {% if form.password %}
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Initial Password <span class="text-danger">*</span></label>
+                                {{ form.password }}
+                                {% if form.password.errors %}<div class="text-danger small">{{ form.password.errors.0 }}</div>{% endif %}
+                            </div>
+                        {% endif %}
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">First Name <span class="text-danger">*</span></label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Last Name</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        {% if form.trainer_id %}
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Trainer ID <span class="text-danger">*</span></label>
+                                {{ form.trainer_id }}
+                                {% if form.trainer_id.errors %}<div class="text-danger small">{{ form.trainer_id.errors.0 }}</div>{% endif %}
+                            </div>
+                        {% endif %}
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Department</label>
+                            {{ form.department }}
+                            {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Monthly Salary (₹) <span class="text-danger">*</span></label>
+                            {{ form.monthly_salary }}
+                            {% if form.monthly_salary.errors %}<div class="text-danger small">{{ form.monthly_salary.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Scheduled Shift Hours (Daily) <span class="text-danger">*</span></label>
+                            {{ form.daily_working_hours }}
+                            <div class="form-text small">e.g. 2.0, 3.0, 5.0, 5.5 hours. Early exit &gt;20m triggers Half Day.</div>
+                            {% if form.daily_working_hours.errors %}<div class="text-danger small">{{ form.daily_working_hours.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Scheduled Check-in Time <span class="text-danger">*</span></label>
+                            {{ form.expected_start_time }}
+                            <div class="form-text small">e.g. 09:00 AM. Arrival delay &gt;20m triggers Half Day.</div>
+                            {% if form.expected_start_time.errors %}<div class="text-danger small">{{ form.expected_start_time.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">2. Contact Information</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Official Email <span class="text-danger">*</span></label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}<div class="text-danger small">{{ form.phone.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">3. Professional Profile</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label class="form-label small fw-semibold">Technologies Taught</label>
+                            {{ form.technologies }}
+                            <div class="form-text small">Comma-separated, e.g. Java Full Stack, Spring Boot, React, Python</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Years of Experience</label>
+                            {{ form.experience_years }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-semibold">Past Experience Details</label>
+                            {{ form.experience_details }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-semibold">Bio / Summary</label>
+                            {{ form.bio }}
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">4. Social Links & Profiles (LinkedIn, GitHub, X, Instagram, YouTube)</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold"><i class="fab fa-linkedin text-primary me-1"></i> LinkedIn</label>
+                            {{ form.linkedin }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold"><i class="fab fa-github text-dark me-1"></i> GitHub</label>
+                            {{ form.github }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold"><i class="fab fa-x-twitter text-dark me-1"></i> X (Twitter)</label>
+                            {{ form.twitter }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold"><i class="fab fa-instagram text-danger me-1"></i> Instagram</label>
+                            {{ form.instagram }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold"><i class="fab fa-youtube text-danger me-1"></i> YouTube</label>
+                            {{ form.youtube }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold"><i class="fas fa-globe text-info me-1"></i> Website / Portfolio</label>
+                            {{ form.website }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a href="{% url 'branch_head:trainer_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-1"></i> Save Trainer Details
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

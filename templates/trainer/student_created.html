@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Created: {{ student.student_id }} | DeviX Academy{% endblock %}
+{% block page_title %}Enrollment Successful{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Success Alert Header -->
+        <div class="alert alert-success d-flex align-items-center gap-3 p-3 rounded-4 shadow-sm mb-4">
+            <i class="fas fa-check-circle fa-2x text-success"></i>
+            <div>
+                <h5 class="alert-heading fw-bold mb-1">Student Account Provisioned Successfully!</h5>
+                <p class="mb-0 small">The student credentials have been generated below. Please share or print them for the student.</p>
+            </div>
+        </div>
+
+        <!-- Student Credential Slip / Card -->
+        <div class="card border-0 shadow rounded-4 overflow-hidden mb-4 print-credential-card" id="credentialSlip">
+            <div class="p-4 bg-dark text-white d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="{% static 'images/logo.svg' %}" alt="DeviX Logo" height="42">
+                    <div>
+                        <h5 class="fw-bold mb-0">DeviX Academy</h5>
+                        <div class="text-warning small fw-bold">STUDENT LOGIN CREDENTIALS</div>
+                    </div>
+                </div>
+                <span class="badge bg-primary px-3 py-2 font-monospace fs-6">{{ student.student_id }}</span>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="row g-4 align-items-center mb-4">
+                    <div class="col-sm-3 text-center">
+                        <img src="{{ student.profile_picture_url }}" alt="{{ student.name }}" class="rounded-circle shadow-sm" width="90" height="90" style="object-fit: cover; border: 3px solid #eff6ff;">
+                    </div>
+                    <div class="col-sm-9">
+                        <h4 class="fw-bold mb-1 text-dark">{{ student.name }}</h4>
+                        <div class="text-muted small mb-2">{{ student.course.name }} &bull; {{ student.department.name }} Department</div>
+                        <div class="small">
+                            <strong>Assigned Mentor:</strong> {{ trainer.full_name }} ({{ trainer.trainer_id }})
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Credential Box -->
+                <div class="p-4 bg-light rounded-4 border border-2 border-primary mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <span class="text-muted small text-uppercase fw-semibold">Login Username:</span>
+                            <div class="d-flex align-items-center justify-content-between bg-white p-2 px-3 rounded border mt-1">
+                                <span class="font-monospace fw-bold text-dark fs-6">{{ username }}</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-copy-clipboard" data-copy-text="{{ username }}">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <span class="text-muted small text-uppercase fw-semibold">Temporary Password:</span>
+                            <div class="d-flex align-items-center justify-content-between bg-white p-2 px-3 rounded border mt-1">
+                                <span class="font-monospace fw-bold text-danger fs-6">{{ raw_password }}</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-copy-clipboard" data-copy-text="{{ raw_password }}">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guidance Note -->
+                <div class="alert alert-warning small mb-0">
+                    <i class="fas fa-info-circle me-1"></i> <strong>Important Note:</strong> This password is shown only once. The student will be prompted to choose a new password upon their first login at <code>{{ request.scheme }}://{{ request.get_host }}/login/</code>.
+                </div>
+            </div>
+
+            <!-- Action Buttons Footer -->
+            <div class="card-footer bg-white p-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2 no-print">
+                <a href="{% url 'trainer:student_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to My Students
+                </a>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-copy-clipboard" data-copy-text="DeviX Academy Login Credentials&#10;Portal: {{ request.scheme }}://{{ request.get_host }}/login/&#10;Student: {{ student.name }} ({{ student.student_id }})&#10;Username: {{ username }}&#10;Password: {{ raw_password }}">
+                        <i class="fas fa-copy me-1"></i> Copy All Details
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i> Print Credential Slip
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

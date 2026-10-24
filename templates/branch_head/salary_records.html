@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Salary Records | DeviX Academy{% endblock %}
+{% block page_title %}Faculty Salary Records{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Generated Salary Records</h4>
+        <p class="text-muted small mb-0">Historical log of processed faculty salaries and printable payment slips.</p>
+    </div>
+    <a href="{% url 'branch_head:salary_calculator' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Calculate New Salary
+    </a>
+</div>
+
+<div class="card border overflow-hidden">
+    <div class="table-responsive">
+        <table class="table custom-table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Slip Number</th>
+                    <th>Trainer</th>
+                    <th>Period</th>
+                    <th>Working / Present</th>
+                    <th>Leaves / Absences</th>
+                    <th>Per-Day Rate</th>
+                    <th>Deduction</th>
+                    <th>Net Pay</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in records %}
+                    <tr>
+                        <td class="font-monospace fw-bold text-primary">{{ rec.slip_id }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="{{ rec.trainer.profile_picture_url }}" alt="{{ rec.trainer.full_name }}" class="rounded-circle" width="36" height="36" style="object-fit: cover;">
+                                <div>
+                                    <div class="fw-bold text-dark">{{ rec.trainer.full_name }}</div>
+                                    <div class="text-muted small">{{ rec.trainer.trainer_id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ rec.month_name }} {{ rec.year }}</td>
+                        <td>{{ rec.working_days }} / <span class="text-success fw-bold">{{ rec.present_days }}</span></td>
+                        <td>{{ rec.leave_days }}L / <span class="text-danger">{{ rec.absent_days }}A</span></td>
+                        <td>₹{{ rec.per_day_salary|floatformat:2 }}</td>
+                        <td class="text-danger">{% if rec.deduction > 0 %}&minus; ₹{{ rec.deduction|floatformat:2 }}{% else %}₹0.00{% endif %}</td>
+                        <td class="fw-bold text-success fs-6">₹{{ rec.net_salary|floatformat:2 }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'branch_head:salary_slip' rec.pk %}" class="btn btn-sm btn-outline-primary" target="_blank" title="Print Salary Slip">
+                                <i class="fas fa-print me-1"></i> Salary Slip
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">No salary records generated yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

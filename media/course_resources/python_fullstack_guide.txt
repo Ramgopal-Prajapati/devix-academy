@@ -1,0 +1,14 @@
+DeviX Academy - Course Study Notes & Reference Material
+Course: Python Full Stack Development & Data Science
+Author: Faculty Mentor Team (DeviX Academy by Ram Sir)
+
+1. Core Architecture Overview
+   - Model-View-Template (MVT) Pattern
+   - Django ORM Optimization & Indexing
+   - REST Framework Serializers & ViewSets
+   - Role-Based Access Control (RBAC) Architecture
+
+2. Recommended Lab Exercises:
+   - Build complete CRUD modules with form validation
+   - Connect PostgreSQL database using environment variables
+   - Implement CSRF protection and role decorators

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat with {{ student.name }} | DeviX Academy{% endblock %}
+{% block page_title %}1-on-1 Mentorship Chat{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'trainer:message_history' %}" class="btn btn-outline-secondary btn-sm rounded-circle p-2" title="Back to conversations">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <img src="{{ student.profile_picture_url }}" alt="{{ student.name }}" class="rounded-circle border" width="50" height="50" style="object-fit: cover;">
+        <div>
+            <h4 class="fw-bold mb-0">{{ student.name }}</h4>
+            <div class="text-muted small">
+                <span class="badge bg-light text-primary border me-1">{{ student.student_id }}</span>
+                <span>{{ student.course.name|default:"General" }} &bull; Batch: {{ student.student_class|default:"Regular" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <a href="{% url 'trainer:student_detail' student.id %}" class="btn btn-outline-primary btn-sm">
+        <i class="fas fa-user-circle me-1"></i> View Full Profile
+    </a>
+</div>
+
+<!-- Chat Messages Box -->
+<div class="card border border-slate-300 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+        <span class="small text-muted fw-bold text-uppercase"><i class="fas fa-lock text-success me-1"></i> Private 1-on-1 Thread</span>
+        <span class="badge bg-light text-muted border small">{{ thread_messages|length }} Messages</span>
+    </div>
+
+    <div class="card-body p-3 p-md-4" style="background-color: var(--surface-subtle); max-height: 480px; overflow-y: auto;">
+        {% for msg in thread_messages %}
+            {% if msg.sender_role == 'TRAINER' %}
+                <!-- Message sent by logged-in Trainer -->
+                <div class="d-flex justify-content-end mb-3">
+                    <div class="chat-bubble sent-by-me" style="max-width: 78%;">
+                        <div class="d-flex align-items-center justify-content-between gap-3 mb-1">
+                            <span class="fw-bold small text-primary"><i class="fas fa-chalkboard-teacher me-1"></i> You (Mentor)</span>
+                            <span class="text-muted" style="font-size: 0.7rem;">{{ msg.created_at|date:"d M, h:i A" }}</span>
+                        </div>
+                        <div class="fw-semibold small mb-1 text-dark">{{ msg.subject }}</div>
+                        <div class="text-dark" style="white-space: pre-wrap;">{{ msg.message }}</div>
+
+                        {% if msg.attachment or msg.link_url %}
+                            <div class="mt-2 pt-2 border-top d-flex flex-wrap gap-2">
+                                {% if msg.attachment %}
+                                    <a href="{{ msg.attachment.url }}" target="_blank" class="btn btn-sm btn-light border py-1 px-2 small">
+                                        <i class="fas fa-file-download text-danger me-1"></i> {{ msg.attachment_filename }}
+                                    </a>
+                                {% endif %}
+                                {% if msg.link_url %}
+                                    <a href="{{ msg.link_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-light border py-1 px-2 small">
+                                        <i class="fas fa-external-link-alt text-primary me-1"></i> Resource Link
+                                    </a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <!-- Message sent by Student -->
+                <div class="d-flex justify-content-start mb-3">
+                    <div class="chat-bubble sent-by-other" style="max-width: 78%;">
+                        <div class="d-flex align-items-center justify-content-between gap-3 mb-1">
+                            <span class="fw-bold small text-success"><i class="fas fa-user-graduate me-1"></i> {{ student.name }}</span>
+                            <span class="text-muted" style="font-size: 0.7rem;">{{ msg.created_at|date:"d M, h:i A" }}</span>
+                        </div>
+                        <div class="text-dark" style="white-space: pre-wrap;">{{ msg.message }}</div>
+
+                        {% if msg.attachment or msg.link_url %}
+                            <div class="mt-2 pt-2 border-top d-flex flex-wrap gap-2">
+                                {% if msg.attachment %}
+                                    <a href="{{ msg.attachment.url }}" target="_blank" class="btn btn-sm btn-light border py-1 px-2 small">
+                                        <i class="fas fa-file-download text-danger me-1"></i> {{ msg.attachment_filename }}
+                                    </a>
+                                {% endif %}
+                                {% if msg.link_url %}
+                                    <a href="{{ msg.link_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-light border py-1 px-2 small">
+                                        <i class="fas fa-external-link-alt text-primary me-1"></i> Project Link
+                                    </a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% empty %}
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-comments fa-3x mb-3 text-secondary opacity-50"></i>
+                <div class="fw-bold">No messages in this conversation yet</div>
+                <p class="small text-muted">Start the conversation by sending an assignment, guidance, or file below.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Reply / Send Box -->
+    <div class="card-footer bg-white p-3 border-top">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="student" value="{{ student.id }}">
+            
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted mb-1">Subject / Title</label>
+                    <input type="text" name="subject" class="form-control form-control-sm" placeholder="Subject or topic..." value="Regarding your coursework">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-paperclip me-1"></i> Attach PDF / File</label>
+                    <input type="file" name="attachment" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted mb-1"><i class="fas fa-link me-1"></i> External Link (Optional)</label>
+                    <input type="url" name="link_url" class="form-control form-control-sm" placeholder="https://...">
+                </div>
+                <div class="col-12 mt-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Your Message to {{ student.name }}</label>
+                    <textarea name="message" rows="3" class="form-control" placeholder="Write feedback, homework notes, code review or instructions..." required></textarea>
+                </div>
+                <div class="col-12 text-end mt-2">
+                    <button type="submit" class="btn btn-primary px-4 fw-bold">
+                        <i class="fas fa-paper-plane me-2"></i> Send Message to {{ student.name }}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

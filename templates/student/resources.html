@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Course Resources | DeviX Academy{% endblock %}
+{% block page_title %}Learning Resources{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="fas fa-book-reader text-primary me-2"></i> Learning Resources & Curriculum Materials</h4>
+        <p class="text-muted small mb-0">
+            Exclusive study materials tailored strictly for your enrolled track: 
+            <span class="badge bg-primary fs-6 px-3 py-1 ms-1">{{ course.name }}</span>
+        </p>
+    </div>
+
+    <!-- Format Filter & Search -->
+    <form method="GET" class="d-flex flex-wrap gap-2 align-items-center">
+        <div class="input-group input-group-sm" style="max-width: 220px;">
+            <input type="text" name="q" class="form-control" placeholder="Search notes..." value="{{ query }}">
+            <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+        </div>
+
+        <select name="type" class="form-select form-select-sm" style="max-width: 160px;" onchange="this.form.submit()">
+            <option value="">All Formats</option>
+            <option value="FILE" {% if selected_type == 'FILE' %}selected{% endif %}>PDF / Files</option>
+            <option value="LINK" {% if selected_type == 'LINK' %}selected{% endif %}>Web Links / Videos</option>
+            <option value="NOTES" {% if selected_type == 'NOTES' %}selected{% endif %}>Code & Notes</option>
+        </select>
+
+        {% if query or selected_type %}
+            <a href="{% url 'student:resources' %}" class="btn btn-outline-secondary btn-sm" title="Clear Filters"><i class="fas fa-times"></i></a>
+        {% endif %}
+    </form>
+</div>
+
+{% if resources %}
+    <div class="row g-4">
+        {% for res in resources %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card border h-100 d-flex flex-column overflow-hidden" style="border-top: 3px solid {% if res.resource_type == 'FILE' %}#dc2626{% elif res.resource_type == 'LINK' %}#0284c7{% else %}#7c3aed{% endif %} !important;">
+                    <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <span class="badge {% if res.resource_type == 'FILE' %}bg-danger-subtle text-danger{% elif res.resource_type == 'LINK' %}bg-info-subtle text-info{% else %}bg-purple-subtle text-purple{% endif %} px-2 py-1" style="{% if res.resource_type == 'NOTES' %}color: #6b21a8; background-color: #f3e8ff;{% endif %}">
+                            {% if res.resource_type == 'FILE' %}<i class="fas fa-file-pdf me-1"></i> Document / PDF{% endif %}
+                            {% if res.resource_type == 'LINK' %}<i class="fas fa-link me-1"></i> External Link{% endif %}
+                            {% if res.resource_type == 'NOTES' %}<i class="fas fa-code me-1"></i> Notes / Code{% endif %}
+                        </span>
+                        <span class="text-muted small">{{ res.created_at|date:"d M Y" }}</span>
+                    </div>
+
+                    <div class="card-body p-4 flex-grow-1">
+                        <h5 class="fw-bold text-dark mb-2">{{ res.title }}</h5>
+                        <p class="text-muted small mb-3">{{ res.description|default:"Curated learning material for this module." }}</p>
+
+                        {% if res.notes_content %}
+                            <div class="p-2 bg-light rounded font-monospace small mb-3 text-truncate" style="max-height: 80px; overflow: hidden;">
+                                {{ res.notes_content|slice:":120" }}...
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-footer bg-light p-3 border-top d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Mentor: <strong>{{ res.trainer.full_name }}</strong></span>
+
+                        <div>
+                            {% if res.file %}
+                                <a href="{{ res.file.url }}" target="_blank" class="btn btn-sm btn-danger px-3 shadow-sm">
+                                    <i class="fas fa-download me-1"></i> Download
+                                </a>
+                            {% endif %}
+                            {% if res.link_url %}
+                                <a href="{{ res.link_url }}" target="_blank" class="btn btn-sm btn-primary px-3 shadow-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i> Open Link
+                                </a>
+                            {% endif %}
+                            {% if res.notes_content %}
+                                <button type="button" class="btn btn-sm btn-dark px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#readNotesModal{{ res.id }}">
+                                    <i class="fas fa-book-open me-1"></i> Read Notes
+                                </button>
+
+                                <!-- Read Notes Modal -->
+                                <div class="modal fade" id="readNotesModal{{ res.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                                        <div class="modal-content border-0 shadow">
+                                            <div class="modal-header bg-dark text-white">
+                                                <h6 class="modal-title">{{ res.title }} - Study Notes</h6>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body p-4">
+                                                <pre class="bg-light p-3 rounded font-monospace small mb-0" style="white-space: pre-wrap; max-height: 500px; overflow-y: auto;">{{ res.notes_content }}</pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center text-muted my-4">
+        <i class="fas fa-folder-open fa-4x text-primary mb-3 opacity-50"></i>
+        <h5 class="fw-bold text-dark">No Resources Uploaded Yet for {{ course.name }}</h5>
+        <p class="small text-muted mb-0">Your mentor will post lecture notes, PDFs, code templates, and reference materials here soon.</p>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}1-on-1 Student Chats | DeviX Academy{% endblock %}
+{% block page_title %}Direct Student Conversations{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">1-on-1 Mentorship Conversations</h4>
+        <p class="text-muted small mb-0">Private bidirectional threads with each of your assigned students. Send PDFs, materials, or answer student queries.</p>
+    </div>
+    <a href="{% url 'trainer:message_student' %}" class="btn btn-primary">
+        <i class="fas fa-paper-plane me-1"></i> Compose Direct Message
+    </a>
+</div>
+
+<div class="card border border-slate-300 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table custom-table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Student Scholar</th>
+                    <th>Course Track</th>
+                    <th>Latest Activity</th>
+                    <th>Messages Exchanged</th>
+                    <th>Unread Student Replies</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in conversation_list %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="{{ item.student.profile_picture_url }}" alt="{{ item.student.name }}" class="rounded-circle border" width="40" height="40" style="object-fit: cover;">
+                                <div>
+                                    <a href="{% url 'trainer:student_conversation' item.student.id %}" class="fw-bold text-dark text-decoration-none">
+                                        {{ item.student.name }}
+                                    </a>
+                                    <div class="text-muted small font-monospace">{{ item.student.student_id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-primary border py-1 px-2 small">
+                                {{ item.student.course.name|default:"General" }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if item.last_message %}
+                                <div class="text-truncate text-muted small" style="max-width: 250px;">
+                                    <strong class="text-dark">{% if item.last_message.sender_role == 'TRAINER' %}You:{% else %}Student:{% endif %}</strong>
+                                    {{ item.last_message.message }}
+                                </div>
+                                <div class="text-muted" style="font-size: 0.72rem;">{{ item.last_message.created_at|date:"d M, h:i A" }}</div>
+                            {% else %}
+                                <span class="text-muted small fst-italic">No messages yet</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-slate-100 text-dark border px-2 py-1">{{ item.total_count }}</span>
+                        </td>
+                        <td>
+                            {% if item.unread_count > 0 %}
+                                <span class="badge bg-danger rounded-pill px-2 py-1">
+                                    <i class="fas fa-comment-dots me-1"></i> {{ item.unread_count }} New
+                                </span>
+                            {% else %}
+                                <span class="badge bg-light text-muted border small">All caught up</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'trainer:student_conversation' item.student.id %}" class="btn btn-outline-primary btn-sm px-3">
+                                <i class="fas fa-comments me-1"></i> Open Chat
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="fas fa-comments fa-3x mb-3 text-secondary opacity-50"></i>
+                            <div class="fw-bold">No assigned students found</div>
+                            <p class="small text-muted">Enroll a student or contact Branch Head to assign scholars to your batch.</p>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

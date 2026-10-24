@@ -1,0 +1,19 @@
+{
+  "name": "DeviX Academy - Training Institute Management",
+  "short_name": "DeviX Academy",
+  "description": "Executive Institute Management System by Ram Sir - Students, Trainers, Leaves, Resources & Notifications",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/static/images/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile | DeviX Academy{% endblock %}
+{% block page_title %}Faculty Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card border" style="border-top: 3px solid #7c3aed !important;">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-id-badge text-primary me-2"></i> Edit Faculty Profile</h5>
+                <span class="badge bg-light text-dark border font-monospace">{{ trainer.trainer_id }}</span>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Photo Upload Preview -->
+                    <div class="text-center mb-4">
+                        <div class="avatar-preview-box mb-2">
+                            <img id="avatarPreview" src="{{ trainer.profile_picture_url }}" alt="Trainer Photo">
+                            <label for="id_profile_picture" class="avatar-edit-label" title="Change Photo">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                        </div>
+                        <div style="display: none;">
+                            {{ form.profile_picture }}
+                        </div>
+                        <span class="text-muted small">Update your official profile picture (JPG, PNG, WEBP)</span>
+                    </div>
+
+                    <!-- Read-Only Institutional Fields Banner -->
+                    <div class="p-3 bg-light rounded-3 mb-4 border">
+                        <div class="row g-2 small">
+                            <div class="col-sm-4">
+                                <span class="text-muted">Trainer ID:</span>
+                                <div class="fw-bold font-monospace text-dark">{{ trainer.trainer_id }} <i class="fas fa-lock text-muted small ms-1" title="Managed by Branch Head"></i></div>
+                            </div>
+                            <div class="col-sm-4">
+                                <span class="text-muted">Department:</span>
+                                <div class="fw-bold text-dark">{{ trainer.department.name|default:"General" }} <i class="fas fa-lock text-muted small ms-1" title="Managed by Branch Head"></i></div>
+                            </div>
+                            <div class="col-sm-4">
+                                <span class="text-muted">Monthly Gross Salary:</span>
+                                <div class="fw-bold text-success">₹{{ trainer.monthly_salary|floatformat:2 }} <i class="fas fa-lock text-muted small ms-1" title="Managed by Branch Head"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">1. Contact & Basic Info</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Contact Phone Number</label>
+                            {{ form.phone }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Official Email</label>
+                            <input type="text" class="form-control" value="{{ trainer.email }}" disabled>
+                            <div class="form-text small">Email updates must be requested from Branch Head.</div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">2. Teaching & Expertise</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label class="form-label small fw-semibold">Technologies You Teach</label>
+                            {{ form.technologies }}
+                            <div class="form-text small">Comma-separated, e.g. Java Full Stack, Spring Boot, React, Python</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Experience (Years)</label>
+                            {{ form.experience_years }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-semibold">Professional Bio</label>
+                            {{ form.bio }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-semibold">Past Project / Work Experience</label>
+                            {{ form.experience_details }}
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">3. Social & Professional Profiles</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold"><i class="fab fa-linkedin text-primary me-1"></i> LinkedIn URL</label>
+                            {{ form.linkedin }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold"><i class="fab fa-github me-1"></i> GitHub URL</label>
+                            {{ form.github }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold"><i class="fab fa-instagram text-danger me-1"></i> Instagram</label>
+                            {{ form.instagram }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold"><i class="fab fa-youtube text-danger me-1"></i> YouTube Channel</label>
+                            {{ form.youtube }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a href="{% url 'trainer:dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-1"></i> Save Profile Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

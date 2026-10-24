@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}My Attendance & Leave Calendar | DeviX Academy{% endblock %}
+{% block page_title %}My Faculty Attendance{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">My Faculty Attendance & Punch Calendar</h4>
+        <p class="text-muted small mb-0">Monthly attendance grid, punch-in/out timestamps, and leave log for {{ trainer.full_name }} ({{ trainer.trainer_id }}).</p>
+    </div>
+
+    <!-- Month & Year Selector -->
+    <form method="GET" class="d-flex gap-2">
+        <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
+            {% for m_num, m_name in month_names %}
+                <option value="{{ m_num }}" {% if selected_month == m_num %}selected{% endif %}>{{ m_name }}</option>
+            {% endfor %}
+        </select>
+        <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+            {% for y in years %}
+                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+<!-- Monthly Attendance Metrics -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card border border-slate-300 p-3 text-center shadow-sm" style="border-top: 3px solid #16a34a !important;">
+            <span class="text-muted small text-uppercase fw-bold">Present Days</span>
+            <div class="display-6 fw-bold text-success mt-1">{{ calendar_data.present_count }}</div>
+            <span class="badge bg-light text-success border small mt-1">Full Attendance</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border border-slate-300 p-3 text-center shadow-sm" style="border-top: 3px solid #d97706 !important;">
+            <span class="text-muted small text-uppercase fw-bold">Half Days</span>
+            <div class="display-6 fw-bold text-warning mt-1">{{ calendar_data.half_day_count }}</div>
+            <span class="badge bg-light text-warning border small mt-1">&gt;20m Late/Early</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border border-slate-300 p-3 text-center shadow-sm" style="border-top: 3px solid #2563eb !important;">
+            <span class="text-muted small text-uppercase fw-bold">Approved Leaves</span>
+            <div class="display-6 fw-bold text-primary mt-1">{{ calendar_data.leave_count }}</div>
+            <span class="badge bg-light text-primary border small mt-1">Applied &amp; Approved</span>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border border-slate-300 p-3 text-center shadow-sm" style="border-top: 3px solid #dc2626 !important;">
+            <span class="text-muted small text-uppercase fw-bold">Absences</span>
+            <div class="display-6 fw-bold text-danger mt-1">{{ calendar_data.absent_count }}</div>
+            <span class="badge bg-light text-danger border small mt-1">Unapproved</span>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Card -->
+<div class="card border border-slate-300 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <div class="stat-icon blue" style="width: 32px; height: 32px; font-size: 0.9rem;"><i class="fas fa-calendar-alt"></i></div>
+            <h5 class="fw-bold text-dark mb-0">{{ month_name }} {{ selected_year }}</h5>
+        </div>
+
+        <!-- Color Legend -->
+        <div class="d-flex flex-wrap align-items-center gap-3 small">
+            <span class="d-inline-flex align-items-center gap-1">
+                <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #16a34a;"></span>
+                <span>Present</span>
+            </span>
+            <span class="d-inline-flex align-items-center gap-1">
+                <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #d97706;"></span>
+                <span>Half Day</span>
+            </span>
+            <span class="d-inline-flex align-items-center gap-1">
+                <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #2563eb;"></span>
+                <span>Leave</span>
+            </span>
+            <span class="d-inline-flex align-items-center gap-1">
+                <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #dc2626;"></span>
+                <span>Absent</span>
+            </span>
+            <span class="d-inline-flex align-items-center gap-1">
+                <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #64748b;"></span>
+                <span>Sunday</span>
+            </span>
+        </div>
+    </div>
+
+    <div class="card-body p-3">
+        <!-- 7-Column Day Header -->
+        <div class="attendance-calendar-grid mb-2">
+            <div class="cal-header-cell">Mon</div>
+            <div class="cal-header-cell">Tue</div>
+            <div class="cal-header-cell">Wed</div>
+            <div class="cal-header-cell">Thu</div>
+            <div class="cal-header-cell">Fri</div>
+            <div class="cal-header-cell">Sat</div>
+            <div class="cal-header-cell" style="color: #64748b;">Sun</div>
+        </div>
+
+        <!-- Month Grid Rows -->
+        {% for week in calendar_data.weeks %}
+            <div class="attendance-calendar-grid mb-2">
+                {% for d in week %}
+                    {% if d.is_padding %}
+                        <div class="cal-day-cell cal-empty"></div>
+                    {% else %}
+                        <div class="cal-day-cell {{ d.color_class }} {% if d.is_today %}cal-today{% endif %}">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="cal-day-num">{{ d.day }}</span>
+                                {% if d.is_today %}
+                                    <span class="cal-today-pill">Today</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="my-auto">
+                                {% if d.status == 'Present' %}
+                                    <span class="cal-badge-present"><i class="fas fa-check me-1"></i>Present</span>
+                                {% elif d.status == 'Half_Day' %}
+                                    <span class="cal-badge-halfday"><i class="fas fa-adjust me-1"></i>Half Day</span>
+                                {% elif d.status == 'Leave' %}
+                                    <span class="cal-badge-leave"><i class="fas fa-plane-departure me-1"></i>Leave</span>
+                                {% elif d.status == 'Absent' %}
+                                    <span class="cal-badge-absent"><i class="fas fa-times me-1"></i>Absent</span>
+                                {% elif d.status == 'Sunday' %}
+                                    <span class="cal-badge-sunday"><i class="fas fa-coffee me-1"></i>Sunday</span>
+                                {% else %}
+                                    <span class="cal-badge-future">-</span>
+                                {% endif %}
+                            </div>
+
+                            {% if d.check_in %}
+                                <div class="mt-1" style="font-size: 0.68rem; line-height: 1.2;">
+                                    <span class="text-muted">In:</span> <strong class="text-dark">{{ d.check_in|time:"h:i A" }}</strong>
+                                    {% if d.check_out %}
+                                        <br><span class="text-muted">Out:</span> <strong class="text-dark">{{ d.check_out|time:"h:i A" }}</strong>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

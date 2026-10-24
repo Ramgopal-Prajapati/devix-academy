@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Enroll New Student | DeviX Academy{% endblock %}
+{% block page_title %}Enroll New Student{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border" style="border-top: 3px solid #1d4ed8 !important;">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-user-plus text-primary me-2"></i> Enroll Student</h5>
+                <a href="{% url 'trainer:student_list' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to My Students
+                </a>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="alert alert-info small mb-4">
+                    <i class="fas fa-magic me-1 text-primary"></i> 
+                    <strong>Automated Credentials:</strong> A standardized Student ID (e.g. <code>DVX-{% now "Y" %}-000X</code>) and a secure random password will be auto-generated. You will be able to copy or print them immediately after submission.
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Photo Upload Preview -->
+                    <div class="text-center mb-4">
+                        <div class="avatar-preview-box mb-2">
+                            <img id="avatarPreview" src="{% static 'images/default-student.svg' %}" alt="Student Photo">
+                            <label for="id_profile_picture" class="avatar-edit-label" title="Upload Photo">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                        </div>
+                        <div style="display: none;">
+                            {{ form.profile_picture }}
+                        </div>
+                        <span class="text-muted small">Student Profile Picture (Optional, Max 5MB)</span>
+                        {% if form.profile_picture.errors %}
+                            <div class="text-danger small mt-1">{{ form.profile_picture.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">1. Student Details</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Full Name <span class="text-danger">*</span></label>
+                            {{ form.name }}
+                            {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Student Class / Batch Name</label>
+                            {{ form.student_class }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Email Address <span class="text-danger">*</span></label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Mobile Phone <span class="text-danger">*</span></label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}<div class="text-danger small">{{ form.phone.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">2. Academic Track (AJAX Filtered)</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Department <span class="text-danger">*</span></label>
+                            {{ form.department }}
+                            <div class="form-text small">Select Tech / Non-Tech to filter courses dynamically.</div>
+                            {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Course <span class="text-danger">*</span></label>
+                            {{ form.course }}
+                            {% if form.course.errors %}<div class="text-danger small">{{ form.course.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Course Duration</label>
+                            {{ form.course_duration }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Start Date <span class="text-danger">*</span></label>
+                            {{ form.start_date }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Expected End Date</label>
+                            {{ form.end_date }}
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">3. Social Links (Optional)</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">LinkedIn Profile</label>
+                            {{ form.linkedin }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">GitHub Profile</label>
+                            {{ form.github }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a href="{% url 'trainer:student_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-check-circle me-1"></i> Enroll Student & Generate Credentials
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

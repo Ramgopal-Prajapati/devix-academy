@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Leave Requests | DeviX Academy{% endblock %}
+{% block page_title %}Student Leave Management{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Header Summary Card -->
+    <div class="col-12">
+        <div class="card border border-slate-300 shadow-sm rounded-4 p-4" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white;">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div>
+                    <h4 class="fw-bold mb-1"><i class="fas fa-user-clock text-warning me-2"></i> Student Leave Requests</h4>
+                    <p class="mb-0 text-white-50 small">
+                        Review leave applications submitted by your assigned students.
+                        <br><strong>Approval Rule:</strong> Approving marks <span class="badge bg-info text-dark">Leave</span> on their daily attendance records. Rejecting marks <span class="badge bg-danger">Absent</span> if they miss class.
+                    </p>
+                </div>
+                <div class="d-flex gap-3 text-center">
+                    <div class="bg-white bg-opacity-10 px-3 py-2 rounded-3 border border-white border-opacity-10">
+                        <div class="small text-white-50">Pending Review</div>
+                        <div class="fw-bold fs-5 text-warning">{{ pending_count }}</div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 px-3 py-2 rounded-3 border border-white border-opacity-10">
+                        <div class="small text-white-50">Total Requests</div>
+                        <div class="fw-bold fs-5 text-white">{{ leaves.count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar & Requests Table -->
+    <div class="col-12">
+        <div class="card border border-slate-300 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{% url 'trainer:student_leaves' %}" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill px-3">
+                        All Requests
+                    </a>
+                    <a href="{% url 'trainer:student_leaves' %}?status=Pending" class="btn btn-sm {% if status_filter == 'Pending' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %} rounded-pill px-3">
+                        Pending {% if pending_count > 0 %}<span class="badge bg-danger rounded-pill ms-1">{{ pending_count }}</span>{% endif %}
+                    </a>
+                    <a href="{% url 'trainer:student_leaves' %}?status=Approved" class="btn btn-sm {% if status_filter == 'Approved' %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill px-3">
+                        Approved
+                    </a>
+                    <a href="{% url 'trainer:student_leaves' %}?status=Rejected" class="btn btn-sm {% if status_filter == 'Rejected' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-3">
+                        Rejected
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                {% if leaves %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small text-uppercase text-muted">
+                                <tr>
+                                    <th class="ps-3">Student</th>
+                                    <th>Course & Dept</th>
+                                    <th>Leave Period</th>
+                                    <th>Reason / Category</th>
+                                    <th>Status</th>
+                                    <th>Trainer Remark</th>
+                                    <th class="pe-3 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for leave in leaves %}
+                                    <tr>
+                                        <td class="ps-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <img src="{{ leave.student.profile_picture_url }}" alt="{{ leave.student.name }}" class="rounded-circle border" width="40" height="40" style="object-fit: cover;">
+                                                <div>
+                                                    <div class="fw-bold text-dark">{{ leave.student.name }}</div>
+                                                    <span class="badge bg-light text-secondary border small font-monospace">{{ leave.student.student_id }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold text-dark small">{{ leave.student.course.name|default:"Not assigned" }}</div>
+                                            <div class="text-muted small">{{ leave.student.department.name|default:"Tech" }}</div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-dark small">
+                                                {{ leave.from_date|date:"d M Y" }} {% if leave.from_date != leave.to_date %}to {{ leave.to_date|date:"d M Y" }}{% endif %}
+                                            </div>
+                                            <span class="badge bg-primary-subtle text-primary border small">{{ leave.total_days }} day{% if leave.total_days > 1 %}s{% endif %}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary text-white small">{{ leave.get_leave_type_display }}</span>
+                                            <div class="text-muted small text-truncate mt-1" style="max-width: 200px;" title="{{ leave.reason }}">
+                                                {{ leave.reason }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if leave.status == 'Approved' %}
+                                                <span class="badge bg-success-subtle text-success border border-success fw-bold px-2 py-1">
+                                                    <i class="fas fa-check-circle me-1"></i> Approved
+                                                </span>
+                                            {% elif leave.status == 'Rejected' %}
+                                                <span class="badge bg-danger-subtle text-danger border border-danger fw-bold px-2 py-1">
+                                                    <i class="fas fa-times-circle me-1"></i> Rejected
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning fw-bold px-2 py-1">
+                                                    <i class="fas fa-clock me-1"></i> Pending
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if leave.trainer_remark %}
+                                                <div class="small text-dark fw-semibold text-truncate" style="max-width: 180px;" title="{{ leave.trainer_remark }}">
+                                                    {{ leave.trainer_remark }}
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted small">&mdash;</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="pe-3 text-end">
+                                            <button type="button" 
+                                                    class="btn btn-sm {% if leave.status == 'Pending' %}btn-warning text-dark fw-bold{% else %}btn-outline-secondary{% endif %} rounded-pill px-3"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#reviewModal{{ leave.id }}">
+                                                <i class="fas fa-tasks me-1"></i> {% if leave.status == 'Pending' %}Review{% else %}Edit Review{% endif %}
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Review Modal for this leave request -->
+                                    <div class="modal fade" id="reviewModal{{ leave.id }}" tabindex="-1" aria-labelledby="modalLabel{{ leave.id }}" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content rounded-4 border-0 shadow-lg">
+                                                <div class="modal-header bg-light border-bottom rounded-top-4">
+                                                    <h5 class="modal-title fw-bold text-dark" id="modalLabel{{ leave.id }}">
+                                                        <i class="fas fa-clipboard-check text-primary me-2"></i> Review Student Leave Request
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form method="POST" action="{% url 'trainer:student_leave_action' leave.id %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-body p-4">
+                                                        <!-- Student Details Info Box -->
+                                                        <div class="bg-light p-3 rounded-3 mb-3 border">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <img src="{{ leave.student.profile_picture_url }}" class="rounded-circle border" width="45" height="45" style="object-fit: cover;">
+                                                                <div>
+                                                                    <div class="fw-bold text-dark">{{ leave.student.name }}</div>
+                                                                    <div class="text-muted small">{{ leave.student.student_id }} &bull; {{ leave.student.course.name|default:"Course" }}</div>
+                                                                </div>
+                                                            </div>
+                                                            <hr class="my-2">
+                                                            <div class="small">
+                                                                <strong>Leave Dates:</strong> {{ leave.from_date|date:"d M Y" }} to {{ leave.to_date|date:"d M Y" }} ({{ leave.total_days }} day{{ leave.total_days|pluralize }})
+                                                                <br><strong>Category:</strong> {{ leave.get_leave_type_display }}
+                                                                <br><strong>Student Reason:</strong> <em>"{{ leave.reason }}"</em>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Action Choice -->
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-bold text-dark">Decision <span class="text-danger">*</span></label>
+                                                            <select name="status" class="form-select" required>
+                                                                <option value="Approved" {% if leave.status == 'Approved' or leave.status == 'Pending' %}selected{% endif %}>
+                                                                    Approve (Mark 'Leave' in student attendance)
+                                                                </option>
+                                                                <option value="Rejected" {% if leave.status == 'Rejected' %}selected{% endif %}>
+                                                                    Reject (Marks 'Absent' if student does not attend)
+                                                                </option>
+                                                            </select>
+                                                            <div class="form-text small">
+                                                                If Approved, dates will show 'Leave' on their attendance records and visual calendar.
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Optional Remark -->
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-bold text-dark">Trainer Remark / Advice to Student</label>
+                                                            <textarea name="trainer_remark" rows="3" class="form-control" placeholder="Optional comments or advice (e.g. Please catch up on Java modules afterwards)...">{{ leave.trainer_remark }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer bg-light border-top rounded-bottom-4">
+                                                        <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4">
+                                                            <i class="fas fa-check me-1"></i> Save Decision
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-5 text-center text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3 text-muted opacity-50"></i>
+                        <h6 class="fw-bold text-dark">No Leave Applications Found</h6>
+                        <p class="small text-muted mb-0">No student leave requests match the selected status.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

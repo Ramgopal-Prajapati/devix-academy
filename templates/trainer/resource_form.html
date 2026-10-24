@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Course Resource | DeviX Academy{% endblock %}
+{% block page_title %}Add Course Learning Resource{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border" style="border-top: 3px solid #059669 !important;">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-folder-plus text-primary me-2"></i> Upload Course Learning Material</h5>
+                <a href="{% url 'trainer:resource_list' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Resources
+                </a>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="alert alert-info small mb-4">
+                    <i class="fas fa-info-circle me-1"></i> <strong>Course-Specific Access:</strong> This resource will be accessible in the "Resources" tab <strong>strictly and exclusively</strong> to students enrolled in the chosen course.
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Department <span class="text-danger">*</span></label>
+                            {{ form.department }}
+                            {% if form.department.errors %}<div class="text-danger small">{{ form.department.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Target Course Track <span class="text-danger">*</span></label>
+                            {{ form.course }}
+                            {% if form.course.errors %}<div class="text-danger small">{{ form.course.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Resource Title <span class="text-danger">*</span></label>
+                        {{ form.title }}
+                        {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Description / Highlights</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Format / Type <span class="text-danger">*</span></label>
+                        {{ form.resource_type }}
+                    </div>
+
+                    <div class="mb-3" id="fileGroup">
+                        <label class="form-label small fw-semibold"><i class="fas fa-file-upload text-danger me-1"></i> Upload File / PDF / Document</label>
+                        {{ form.file }}
+                        <div class="form-text small">Accepted: PDF, DOCX, ZIP, PPTX, TXT (Max 25MB).</div>
+                        {% if form.file.errors %}<div class="text-danger small">{{ form.file.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3" id="linkGroup">
+                        <label class="form-label small fw-semibold"><i class="fas fa-link text-primary me-1"></i> External Resource Link</label>
+                        {{ form.link_url }}
+                        <div class="form-text small">e.g. YouTube lecture URL, GitHub repository, documentation URL.</div>
+                        {% if form.link_url.errors %}<div class="text-danger small">{{ form.link_url.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-4" id="notesGroup">
+                        <label class="form-label small fw-semibold"><i class="fas fa-code text-secondary me-1"></i> Lecture Notes / Code Snippets</label>
+                        {{ form.notes_content }}
+                        <div class="form-text small">You can paste formatted code, setup commands, or lecture summary notes.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a href="{% url 'trainer:resource_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                            <i class="fas fa-save me-1"></i> Save Resource
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

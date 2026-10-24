@@ -1,0 +1,336 @@
+{% extends 'base.html' %}
+
+{% block title %}Visual Attendance Calendar | DeviX Academy{% endblock %}
+{% block page_title %}Faculty & Student Attendance Calendar{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="fas fa-calendar-alt text-primary me-2"></i> Monthly Visual Attendance Calendar</h4>
+        <p class="text-muted small mb-0">Separate administrative calendars for Expert Faculty Mentors and Enrolled Scholars.</p>
+    </div>
+
+    <!-- Month & Year Controls -->
+    <form method="GET" class="d-flex gap-2">
+        <input type="hidden" name="tab" value="{{ active_tab }}">
+        {% if active_tab == 'trainer' and current_trainer %}
+            <input type="hidden" name="trainer_id" value="{{ current_trainer.id }}">
+        {% elif active_tab == 'student' and current_student %}
+            <input type="hidden" name="student_id" value="{{ current_student.id }}">
+        {% endif %}
+
+        <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
+            {% for m_num, m_name in month_names %}
+                <option value="{{ m_num }}" {% if selected_month == m_num %}selected{% endif %}>{{ m_name }}</option>
+            {% endfor %}
+        </select>
+        <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+            {% for y in years %}
+                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+<!-- Nav Tabs for Separate Sections -->
+<ul class="nav nav-pills mb-4 gap-2 bg-white p-2 rounded-3 border border-slate-300 shadow-sm">
+    <li class="nav-item">
+        <a class="nav-link fw-bold px-4 {% if active_tab == 'trainer' %}active bg-primary{% else %}text-secondary{% endif %}" href="?tab=trainer&month={{ selected_month }}&year={{ selected_year }}{% if current_trainer %}&trainer_id={{ current_trainer.id }}{% endif %}">
+            <i class="fas fa-chalkboard-teacher me-2"></i> Trainer Attendance Calendar
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link fw-bold px-4 {% if active_tab == 'student' %}active bg-primary{% else %}text-secondary{% endif %}" href="?tab=student&month={{ selected_month }}&year={{ selected_year }}{% if current_student %}&student_id={{ current_student.id }}{% endif %}">
+            <i class="fas fa-user-graduate me-2"></i> Student Attendance Calendar
+        </a>
+    </li>
+</ul>
+
+<!-- ======================= SECTION 1: TRAINER ATTENDANCE CALENDAR ======================= -->
+{% if active_tab == 'trainer' %}
+    <div class="card border border-slate-300 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <!-- Trainer Selection Bar -->
+            <form method="GET" class="row g-3 align-items-center mb-4">
+                <input type="hidden" name="tab" value="trainer">
+                <input type="hidden" name="month" value="{{ selected_month }}">
+                <input type="hidden" name="year" value="{{ selected_year }}">
+
+                <div class="col-md-5">
+                    <label class="form-label small fw-bold text-muted">Select Trainer to View Calendar:</label>
+                    <select name="trainer_id" class="form-select" onchange="this.form.submit()">
+                        {% for t in trainers %}
+                            <option value="{{ t.id }}" {% if current_trainer.id == t.id %}selected{% endif %}>
+                                {{ t.full_name }} ({{ t.trainer_id }}) - {{ t.department.name|default:"Tech" }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if current_trainer %}
+                    <div class="col-md-7 d-flex flex-wrap align-items-center justify-content-md-end gap-3 pt-md-4">
+                        <span class="badge bg-light text-primary border p-2 small">
+                            <i class="fas fa-clock text-warning me-1"></i> Shift Target: {{ current_trainer.daily_working_hours }} Hours
+                        </span>
+                        <span class="badge bg-light text-secondary border p-2 small">
+                            Expected In: {{ current_trainer.expected_start_time|time:"h:i A" }}
+                        </span>
+                        <a href="{% url 'branch_head:trainer_view' current_trainer.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-id-badge me-1"></i> Trainer Profile
+                        </a>
+                    </div>
+                {% endif %}
+            </form>
+
+            {% if current_trainer and trainer_calendar_data %}
+                <!-- Metrics Bar -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="card border p-3 text-center shadow-sm" style="border-top: 3px solid #16a34a !important;">
+                            <span class="text-muted small text-uppercase fw-bold">Full Present</span>
+                            <div class="display-6 fw-bold text-success mt-1">{{ trainer_calendar_data.present_count }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card border p-3 text-center shadow-sm" style="border-top: 3px solid #d97706 !important;">
+                            <span class="text-muted small text-uppercase fw-bold">Half Day (Late/Early)</span>
+                            <div class="display-6 fw-bold text-warning mt-1">{{ trainer_calendar_data.half_day_count }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card border p-3 text-center shadow-sm" style="border-top: 3px solid #2563eb !important;">
+                            <span class="text-muted small text-uppercase fw-bold">Approved Leaves</span>
+                            <div class="display-6 fw-bold text-primary mt-1">{{ trainer_calendar_data.leave_count }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card border p-3 text-center shadow-sm" style="border-top: 3px solid #dc2626 !important;">
+                            <span class="text-muted small text-uppercase fw-bold">Absences</span>
+                            <div class="display-6 fw-bold text-danger mt-1">{{ trainer_calendar_data.absent_count }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Legend -->
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 p-3 bg-light rounded-3 border">
+                    <div class="fw-bold text-dark">
+                        <i class="fas fa-calendar-alt text-primary me-2"></i> {{ month_name }} {{ selected_year }} Calendar Grid
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-3 small">
+                        <span class="d-inline-flex align-items-center gap-1">
+                            <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #16a34a;"></span>
+                            <span class="fw-semibold text-success">Present</span>
+                        </span>
+                        <span class="d-inline-flex align-items-center gap-1">
+                            <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #d97706;"></span>
+                            <span class="fw-semibold text-warning">Half Day (&gt;20m delay)</span>
+                        </span>
+                        <span class="d-inline-flex align-items-center gap-1">
+                            <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #2563eb;"></span>
+                            <span class="fw-semibold text-primary">Leave</span>
+                        </span>
+                        <span class="d-inline-flex align-items-center gap-1">
+                            <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #dc2626;"></span>
+                            <span class="fw-semibold text-danger">Absent</span>
+                        </span>
+                        <span class="d-inline-flex align-items-center gap-1">
+                            <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #64748b;"></span>
+                            <span class="fw-semibold text-secondary">Sunday</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 7-Column Day Header -->
+                <div class="attendance-calendar-grid mb-2">
+                    <div class="cal-header-cell">Mon</div>
+                    <div class="cal-header-cell">Tue</div>
+                    <div class="cal-header-cell">Wed</div>
+                    <div class="cal-header-cell">Thu</div>
+                    <div class="cal-header-cell">Fri</div>
+                    <div class="cal-header-cell">Sat</div>
+                    <div class="cal-header-cell" style="color: #64748b;">Sun</div>
+                </div>
+
+                <!-- Month Grid Rows -->
+                {% for week in trainer_calendar_data.weeks %}
+                    <div class="attendance-calendar-grid mb-2">
+                        {% for d in week %}
+                            {% if d.is_padding %}
+                                <div class="cal-day-cell cal-empty"></div>
+                            {% else %}
+                                <div class="cal-day-cell {{ d.color_class }} {% if d.is_today %}cal-today{% endif %}">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="cal-day-num">{{ d.day }}</span>
+                                        {% if d.is_today %}
+                                            <span class="cal-today-pill">Today</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="my-auto">
+                                        {% if d.status == 'Present' %}
+                                            <span class="cal-badge-present"><i class="fas fa-check me-1"></i>Present</span>
+                                        {% elif d.status == 'Half_Day' %}
+                                            <span class="cal-badge-halfday"><i class="fas fa-adjust me-1"></i>Half Day</span>
+                                        {% elif d.status == 'Leave' %}
+                                            <span class="cal-badge-leave"><i class="fas fa-plane-departure me-1"></i>Leave</span>
+                                        {% elif d.status == 'Absent' %}
+                                            <span class="cal-badge-absent"><i class="fas fa-times me-1"></i>Absent</span>
+                                        {% elif d.status == 'Sunday' %}
+                                            <span class="cal-badge-sunday"><i class="fas fa-coffee me-1"></i>Sunday</span>
+                                        {% else %}
+                                            <span class="cal-badge-future">-</span>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if d.check_in %}
+                                        <div class="mt-1" style="font-size: 0.68rem; line-height: 1.2;">
+                                            <span class="text-muted">In:</span> <strong>{{ d.check_in|time:"h:i A" }}</strong>
+                                            {% if d.check_out %}
+                                                <br><span class="text-muted">Out:</span> <strong>{{ d.check_out|time:"h:i A" }}</strong>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <p>No trainer selected or no records found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+<!-- ======================= SECTION 2: STUDENT ATTENDANCE CALENDAR ======================= -->
+{% else %}
+    <div class="card border border-slate-300 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <!-- Student Selection Bar -->
+            <form method="GET" class="row g-3 align-items-center mb-4">
+                <input type="hidden" name="tab" value="student">
+                <input type="hidden" name="month" value="{{ selected_month }}">
+                <input type="hidden" name="year" value="{{ selected_year }}">
+
+                <div class="col-md-5">
+                    <label class="form-label small fw-bold text-muted">Select Student Scholar:</label>
+                    <select name="student_id" class="form-select" onchange="this.form.submit()">
+                        {% for s in students %}
+                            <option value="{{ s.id }}" {% if current_student.id == s.id %}selected{% endif %}>
+                                {{ s.name }} ({{ s.student_id }}) - {{ s.course.name|default:"General" }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if current_student %}
+                    <div class="col-md-7 d-flex flex-wrap align-items-center justify-content-md-end gap-3 pt-md-4">
+                        <span class="badge bg-light text-primary border p-2 small">
+                            <i class="fas fa-graduation-cap me-1"></i> Track: {{ current_student.course.name }}
+                        </span>
+                        <span class="badge bg-light text-secondary border p-2 small">
+                            Mentor: {{ current_student.trainer.full_name|default:"Unassigned" }}
+                        </span>
+                        <a href="{% url 'branch_head:student_view' current_student.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-user me-1"></i> View Student Dossier
+                        </a>
+                    </div>
+                {% endif %}
+            </form>
+
+            {% if current_student and student_calendar_data %}
+                <!-- Metrics Bar -->
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-4">
+                        <div class="card border p-3 text-center shadow-sm" style="border-top: 3px solid #16a34a !important;">
+                            <span class="text-muted small text-uppercase fw-bold">Days Present</span>
+                            <div class="display-6 fw-bold text-success mt-1">{{ student_calendar_data.present_count }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="card border p-3 text-center shadow-sm" style="border-top: 3px solid #dc2626 !important;">
+                            <span class="text-muted small text-uppercase fw-bold">Days Absent</span>
+                            <div class="display-6 fw-bold text-danger mt-1">{{ student_calendar_data.absent_count }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="card border p-3 text-center shadow-sm" style="border-top: 3px solid #64748b !important;">
+                            <span class="text-muted small text-uppercase fw-bold">Sundays</span>
+                            <div class="display-6 fw-bold text-secondary mt-1">{{ student_calendar_data.sunday_count }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Legend -->
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 p-3 bg-light rounded-3 border">
+                    <div class="fw-bold text-dark">
+                        <i class="fas fa-calendar-alt text-primary me-2"></i> {{ month_name }} {{ selected_year }} Student Roll Call Grid
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-3 small">
+                        <span class="d-inline-flex align-items-center gap-1">
+                            <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #16a34a;"></span>
+                            <span class="fw-semibold text-success">Present (Green)</span>
+                        </span>
+                        <span class="d-inline-flex align-items-center gap-1">
+                            <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #dc2626;"></span>
+                            <span class="fw-semibold text-danger">Absent (Red)</span>
+                        </span>
+                        <span class="d-inline-flex align-items-center gap-1">
+                            <span class="d-inline-block rounded-circle" style="width: 10px; height: 10px; background-color: #64748b;"></span>
+                            <span class="fw-semibold text-secondary">Sunday (Gray)</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 7-Column Day Header -->
+                <div class="attendance-calendar-grid mb-2">
+                    <div class="cal-header-cell">Mon</div>
+                    <div class="cal-header-cell">Tue</div>
+                    <div class="cal-header-cell">Wed</div>
+                    <div class="cal-header-cell">Thu</div>
+                    <div class="cal-header-cell">Fri</div>
+                    <div class="cal-header-cell">Sat</div>
+                    <div class="cal-header-cell" style="color: #64748b;">Sun</div>
+                </div>
+
+                <!-- Month Grid Rows -->
+                {% for week in student_calendar_data.weeks %}
+                    <div class="attendance-calendar-grid mb-2">
+                        {% for d in week %}
+                            {% if d.is_padding %}
+                                <div class="cal-day-cell cal-empty"></div>
+                            {% else %}
+                                <div class="cal-day-cell {{ d.color_class }} {% if d.is_today %}cal-today{% endif %}" style="min-height: 75px;">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="cal-day-num">{{ d.day }}</span>
+                                        {% if d.is_today %}
+                                            <span class="cal-today-pill">Today</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="my-auto text-center">
+                                        {% if d.status == 'Present' %}
+                                            <span class="cal-badge-present"><i class="fas fa-check me-1"></i>Present</span>
+                                        {% elif d.status == 'Absent' %}
+                                            <span class="cal-badge-absent"><i class="fas fa-times me-1"></i>Absent</span>
+                                        {% elif d.status == 'Sunday' %}
+                                            <span class="cal-badge-sunday"><i class="fas fa-coffee me-1"></i>Sunday</span>
+                                        {% else %}
+                                            <span class="cal-badge-future">-</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <p>No student selected or no records found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

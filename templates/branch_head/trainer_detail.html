@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ trainer.full_name }} | Trainer Profile{% endblock %}
+{% block page_title %}Trainer Profile{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Left Column: Profile Card -->
+    <div class="col-lg-4">
+        <div class="card border text-center p-4" style="border-top: 3px solid #7c3aed !important;">
+            <div class="position-relative mx-auto mb-3">
+                <img src="{{ trainer.profile_picture_url }}" alt="{{ trainer.full_name }}" class="rounded-circle shadow-sm" width="120" height="120" style="object-fit: cover; border: 4px solid #eff6ff;">
+            </div>
+            <h4 class="fw-bold mb-1">{{ trainer.full_name }}</h4>
+            <div class="badge bg-primary text-uppercase mb-2">{{ trainer.trainer_id }}</div>
+            <div class="text-muted small mb-3">{{ trainer.department.name|default:"General Track" }} Department</div>
+
+            <div class="p-3 bg-light rounded-3 text-start small mb-3">
+                <div class="mb-2"><strong>Email:</strong> <span class="text-secondary">{{ trainer.email }}</span></div>
+                <div class="mb-2"><strong>Phone:</strong> <span class="text-secondary">{{ trainer.phone }}</span></div>
+                <div class="mb-2"><strong>Salary:</strong> <span class="text-success fw-bold">₹{{ trainer.monthly_salary|floatformat:2 }}/mo</span></div>
+                <div><strong>Experience:</strong> <span class="text-secondary">{{ trainer.experience_years }} Years</span></div>
+            </div>
+
+            <!-- Social Media Links -->
+            <div class="d-flex justify-content-center gap-2 mb-3">
+                {% if trainer.linkedin %}
+                    <a href="{{ trainer.linkedin }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-circle"><i class="fab fa-linkedin-in"></i></a>
+                {% endif %}
+                {% if trainer.github %}
+                    <a href="{{ trainer.github }}" target="_blank" class="btn btn-sm btn-outline-dark rounded-circle"><i class="fab fa-github"></i></a>
+                {% endif %}
+            </div>
+
+            <div class="d-grid gap-2">
+                <a href="{% url 'branch_head:trainer_edit' trainer.pk %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-edit me-1"></i> Edit Trainer
+                </a>
+                <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                    <i class="fas fa-key me-1"></i> Reset Password
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#deleteConfirmModal"
+                    data-delete-url="{% url 'branch_head:trainer_delete' trainer.pk %}"
+                    data-item-name="{{ trainer.full_name }}"
+                    data-item-type="Trainer">
+                    <i class="fas fa-trash-alt me-1"></i> Delete Trainer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Details, Students & Logs -->
+    <div class="col-lg-8">
+        <!-- Bio & Technologies -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="fas fa-code text-primary me-2"></i> Technologies & Specializations</h5>
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    {% for tech in trainer.get_technologies_list %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary border-opacity-25 px-3 py-2 fs-6">
+                            {{ tech }}
+                        </span>
+                    {% empty %}
+                        <span class="text-muted small">No technologies listed.</span>
+                    {% endfor %}
+                </div>
+
+                <h5 class="fw-bold mb-2">Professional Bio</h5>
+                <p class="text-muted">{{ trainer.bio|default:"No bio added yet."|linebreaks }}</p>
+
+                {% if trainer.experience_details %}
+                    <h5 class="fw-bold mb-2 mt-3">Industry Experience</h5>
+                    <p class="text-muted">{{ trainer.experience_details|linebreaks }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Assigned Students -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-user-graduate text-success me-2"></i> Assigned Students ({{ students.count }})</h6>
+                <a href="{% url 'branch_head:student_list' %}?trainer={{ trainer.id }}" class="btn btn-sm btn-link text-decoration-none">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table custom-table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Student ID</th>
+                                <th>Course</th>
+                                <th>Attendance %</th>
+                                <th>Eligibility</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                                {% with stats=student.get_attendance_stats %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'branch_head:student_view' student.pk %}" class="fw-semibold text-dark text-decoration-none">
+                                            {{ student.name }}
+                                        </a>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border">{{ student.student_id }}</span></td>
+                                    <td>{{ student.course.name|default:"General" }}</td>
+                                    <td>
+                                        <span class="fw-bold {% if stats.is_eligible %}text-success{% else %}text-danger{% endif %}">{{ stats.percentage }}%</span>
+                                    </td>
+                                    <td>
+                                        {% if stats.is_eligible %}
+                                            <span class="badge-present">Eligible</span>
+                                        {% else %}
+                                            <span class="badge-absent">&lt; 75% Warning</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endwith %}
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-3 text-muted">No students assigned to this trainer yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Salary Records -->
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-file-invoice-dollar text-primary me-2"></i> Processed Salary Slips</h6>
+                <a href="{% url 'branch_head:salary_calculator' %}" class="btn btn-sm btn-outline-success">Calculate New Salary</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table custom-table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Slip ID</th>
+                                <th>Month</th>
+                                <th>Working Days</th>
+                                <th>Present / Paid</th>
+                                <th>Net Salary</th>
+                                <th class="text-end">Slip</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in salary_records %}
+                                <tr>
+                                    <td class="font-monospace small">{{ rec.slip_id }}</td>
+                                    <td>{{ rec.month_name }} {{ rec.year }}</td>
+                                    <td>{{ rec.working_days }} days</td>
+                                    <td>{{ rec.present_days }} / {{ rec.paid_leave_days }}</td>
+                                    <td class="fw-bold text-success">₹{{ rec.net_salary|floatformat:2 }}</td>
+                                    <td class="text-end">
+                                        <a href="{% url 'branch_head:salary_slip' rec.pk %}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-print me-1"></i> View Slip
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-3 text-muted">No salary slips processed for this trainer yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fs-6 fw-bold"><i class="fas fa-key me-2"></i> Reset Password for {{ trainer.full_name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'branch_head:trainer_reset_password' trainer.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">New Temporary Password</label>
+                        <input type="password" name="new_password" class="form-control" placeholder="Min 6 characters" required minlength="6">
+                        <div class="form-text small">The trainer will be prompted to change their password on next login.</div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning btn-sm fw-semibold">Reset Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

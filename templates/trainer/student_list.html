@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}My Assigned Students | DeviX Academy{% endblock %}
+{% block page_title %}My Assigned Students{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">My Students Directory</h4>
+        <p class="text-muted small mb-0">Students enrolled under your mentorship and classroom cohorts.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'trainer:export_my_students_excel' %}?q={{ query }}" class="btn btn-success fw-bold shadow-sm">
+            <i class="fas fa-file-excel me-1"></i> Export Students (.xlsx)
+        </a>
+        <a href="{% url 'trainer:student_attendance_report' %}" class="btn btn-outline-primary fw-semibold">
+            <i class="fas fa-calendar-alt me-1"></i> Monthly Attendance
+        </a>
+        <a href="{% url 'trainer:mark_student_attendance' %}" class="btn btn-outline-success">
+            <i class="fas fa-clipboard-check me-1"></i> Mark Attendance
+        </a>
+        <a href="{% url 'trainer:student_add' %}" class="btn btn-primary">
+            <i class="fas fa-user-plus me-1"></i> Enroll Student
+        </a>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-3">
+        <form method="GET" class="d-flex gap-2" style="max-width: 400px;">
+            <input type="text" name="q" class="form-control" placeholder="Search my students by name, ID, or course..." value="{{ query }}">
+            <button type="submit" class="btn btn-secondary">Search</button>
+            {% if query %}
+                <a href="{% url 'trainer:student_list' %}" class="btn btn-outline-secondary" title="Clear"><i class="fas fa-times"></i></a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card border overflow-hidden">
+    <div class="table-responsive">
+        <table class="table custom-table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Student ID</th>
+                    <th>Course Track</th>
+                    <th>Contact</th>
+                    <th>Attendance %</th>
+                    <th>Certificate Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                    {% with stats=student.get_attendance_stats %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="{{ student.profile_picture_url }}" alt="{{ student.name }}" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+                                <div>
+                                    <div class="fw-bold text-dark">{{ student.name }}</div>
+                                    <div class="text-muted small">{{ student.student_class|default:"Standard Batch" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-light text-dark border font-monospace">{{ student.student_id }}</span></td>
+                        <td>
+                            <span class="badge bg-primary-subtle text-primary">{{ student.course.name|default:"General" }}</span>
+                        </td>
+                        <td>
+                            <div class="small">{{ student.phone }}</div>
+                            <div class="small text-muted">{{ student.email }}</div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 6px; width: 60px;">
+                                    <div class="progress-bar {% if stats.is_eligible %}bg-success{% else %}bg-danger{% endif %}" style="width: {{ stats.percentage }}%"></div>
+                                </div>
+                                <span class="fw-bold small {% if stats.is_eligible %}text-success{% else %}text-danger{% endif %}">{{ stats.percentage }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if stats.is_eligible %}
+                                <span class="badge-present">Eligible (&ge; 75%)</span>
+                            {% else %}
+                                <span class="badge-absent">&lt; 75% Warning</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'trainer:student_detail' student.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endwith %}
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fas fa-user-friends fa-3x mb-3 text-secondary"></i>
+                            <div class="fw-bold">No students assigned yet</div>
+                            <p class="small text-muted">Click "Enroll Student" above to add your first student.</p>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

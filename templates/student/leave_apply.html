@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Apply for Leave | DeviX Academy{% endblock %}
+{% block page_title %}Student Leave Portal{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Header / Stats Banner -->
+    <div class="col-12">
+        <div class="card border border-slate-300 shadow-sm rounded-4 p-4" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white;">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div>
+                    <h4 class="fw-bold mb-1"><i class="fas fa-calendar-plus text-warning me-2"></i> Apply for Official Leave</h4>
+                    <p class="mb-0 text-white-50 small">
+                        Submit a leave application directly to your assigned mentor 
+                        <strong class="text-white">{{ trainer.full_name|default:"Assigned Trainer" }}</strong>.
+                        Once accepted, your attendance for the approved dates is officially recorded as <span class="badge bg-info text-dark">Leave</span> rather than <span class="badge bg-danger">Absent</span>.
+                    </p>
+                </div>
+                <div class="d-flex gap-3 text-center">
+                    <div class="bg-white bg-opacity-10 px-3 py-2 rounded-3 border border-white border-opacity-10">
+                        <div class="small text-white-50">Present</div>
+                        <div class="fw-bold fs-5 text-success">{{ stats.present }}</div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 px-3 py-2 rounded-3 border border-white border-opacity-10">
+                        <div class="small text-white-50">Approved Leaves</div>
+                        <div class="fw-bold fs-5 text-info">{{ stats.leave|default:"0" }}</div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 px-3 py-2 rounded-3 border border-white border-opacity-10">
+                        <div class="small text-white-50">Absent</div>
+                        <div class="fw-bold fs-5 text-danger">{{ stats.absent }}</div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 px-3 py-2 rounded-3 border border-white border-opacity-10">
+                        <div class="small text-white-50">Attendance %</div>
+                        <div class="fw-bold fs-5 {% if stats.is_eligible %}text-warning{% else %}text-danger{% endif %}">{{ stats.percentage }}%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Request Form -->
+    <div class="col-lg-5">
+        <div class="card border border-slate-300 shadow-sm rounded-4 overflow-hidden h-100" style="border-top: 4px solid #2563eb !important;">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-pen-fancy text-primary me-2"></i> Submit Leave Request</h5>
+                <span class="text-muted small">Send to Trainer {{ trainer.full_name|default:"Mentor" }}</span>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Leave Category <span class="text-danger">*</span></label>
+                        {{ form.leave_type }}
+                        {% if form.leave_type.errors %}
+                            <div class="text-danger small mt-1">{{ form.leave_type.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">From Date <span class="text-danger">*</span></label>
+                            {{ form.from_date }}
+                            {% if form.from_date.errors %}
+                                <div class="text-danger small mt-1">{{ form.from_date.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">To Date <span class="text-danger">*</span></label>
+                            {{ form.to_date }}
+                            {% if form.to_date.errors %}
+                                <div class="text-danger small mt-1">{{ form.to_date.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger small py-2">
+                            {{ form.non_field_errors.0 }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Detailed Reason <span class="text-danger">*</span></label>
+                        {{ form.reason }}
+                        {% if form.reason.errors %}
+                            <div class="text-danger small mt-1">{{ form.reason.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-light border small text-muted mb-4">
+                        <i class="fas fa-info-circle text-primary me-1"></i>
+                        <strong>Important:</strong> If your trainer approves your application, your attendance will reflect as <strong>Leave</strong>. If rejected or not submitted, missing class will be recorded as <strong>Absent</strong>.
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary fw-bold py-2 shadow-sm">
+                            <i class="fas fa-paper-plane me-1"></i> Submit Leave Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave History -->
+    <div class="col-lg-7">
+        <div class="card border border-slate-300 shadow-sm rounded-4 overflow-hidden h-100">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-history text-secondary me-2"></i> My Leave Applications</h5>
+                    <span class="text-muted small">History of submitted requests and mentor responses</span>
+                </div>
+                <span class="badge bg-light text-dark border">{{ leave_history.count }} Total</span>
+            </div>
+            <div class="card-body p-0">
+                {% if leave_history %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small text-uppercase text-muted">
+                                <tr>
+                                    <th class="ps-3">Dates & Duration</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Trainer Remark</th>
+                                    <th class="pe-3 text-end">Applied</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in leave_history %}
+                                    <tr>
+                                        <td class="ps-3">
+                                            <div class="fw-bold text-dark">{{ item.from_date|date:"d M Y" }} {% if item.from_date != item.to_date %}to {{ item.to_date|date:"d M Y" }}{% endif %}</div>
+                                            <span class="badge bg-light text-secondary border small">{{ item.total_days }} day{% if item.total_days > 1 %}s{% endif %}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary text-white">{{ item.get_leave_type_display }}</span>
+                                            <div class="text-muted small text-truncate mt-1" style="max-width: 180px;" title="{{ item.reason }}">{{ item.reason }}</div>
+                                        </td>
+                                        <td>
+                                            {% if item.status == 'Approved' %}
+                                                <span class="badge bg-success-subtle text-success border border-success fw-bold px-2 py-1">
+                                                    <i class="fas fa-check-circle me-1"></i> Approved
+                                                </span>
+                                            {% elif item.status == 'Rejected' %}
+                                                <span class="badge bg-danger-subtle text-danger border border-danger fw-bold px-2 py-1">
+                                                    <i class="fas fa-times-circle me-1"></i> Rejected
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning fw-bold px-2 py-1">
+                                                    <i class="fas fa-clock me-1"></i> Pending
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.trainer_remark %}
+                                                <div class="small text-dark fw-semibold">{{ item.trainer_remark }}</div>
+                                            {% else %}
+                                                <span class="text-muted small">&mdash;</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="pe-3 text-end text-muted small">
+                                            {{ item.applied_on|date:"d M Y" }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-5 text-center text-muted">
+                        <i class="fas fa-calendar-check fa-3x mb-3 text-muted opacity-50"></i>
+                        <h6 class="fw-bold text-dark">No Leave Requests Found</h6>
+                        <p class="small text-muted mb-0">You have not submitted any leave applications yet. Use the form on the left to apply.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

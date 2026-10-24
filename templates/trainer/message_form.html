@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Send Message to Student | DeviX Academy{% endblock %}
+{% block page_title %}Send Individual Student Message{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border" style="border-top: 3px solid #1d4ed8 !important;">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-paper-plane text-primary me-2"></i> Send Message / Materials to Student</h5>
+                <a href="{% url 'trainer:message_history' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-history me-1"></i> Message History
+                </a>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="alert alert-light border small text-muted mb-4">
+                    <i class="fas fa-shield-alt text-primary me-1"></i> 
+                    This message will be delivered <strong>privately and individually</strong> to the selected student. They will receive your text, downloadable PDF/file attachment, and links in their "Trainer Messages" section.
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Select Target Student <span class="text-danger">*</span></label>
+                        {{ form.student }}
+                        {% if form.student.errors %}<div class="text-danger small">{{ form.student.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Subject / Title <span class="text-danger">*</span></label>
+                        {{ form.subject }}
+                        {% if form.subject.errors %}<div class="text-danger small">{{ form.subject.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Message & Guidance <span class="text-danger">*</span></label>
+                        {{ form.message }}
+                        {% if form.message.errors %}<div class="text-danger small">{{ form.message.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold"><i class="fas fa-file-pdf text-danger me-1"></i> Attach Course Material / PDF (Optional)</label>
+                            {{ form.attachment }}
+                            <div class="form-text small">Upload PDF, document, slides, or zip file.</div>
+                            {% if form.attachment.errors %}<div class="text-danger small">{{ form.attachment.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold"><i class="fas fa-link text-primary me-1"></i> External Reference Link (Optional)</label>
+                            {{ form.link_url }}
+                            <div class="form-text small">GitHub repository, video tutorial, or Google Drive link.</div>
+                            {% if form.link_url.errors %}<div class="text-danger small">{{ form.link_url.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                        <a href="{% url 'trainer:student_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                            <i class="fas fa-paper-plane me-1"></i> Send Direct Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
