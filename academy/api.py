@@ -155,14 +155,20 @@ def notification_mark_all_read_api(request):
     Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
     return Response({'success': True, 'unread_count': 0})
 
-
 @api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([permissions.AllowAny])
 def notification_poll_api(request):
     """
     Polls for new unread notifications since last_id.
-    Used by front-end / mobile WebView to trigger device notification bar.
+    Safely returns empty response if visitor is not logged in (prevents 403 Forbidden).
     """
+    if not request.user.is_authenticated:
+        return Response({
+            'has_new': False,
+            'total_unread': 0,
+            'notifications': []
+        })
+
     last_id = int(request.query_params.get('last_id', 0))
     qs = Notification.objects.filter(recipient=request.user, is_read=False)
     if last_id > 0:
