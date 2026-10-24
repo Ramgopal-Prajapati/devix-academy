@@ -167,8 +167,47 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Media files (Profile pictures, uploads)
+# Media files (Profile pictures, uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Cloudinary Storage using individual environment variables
+CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
+CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
+
+has_cloudinary = bool(CLOUDINARY_URL or (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET))
+
+if has_cloudinary:
+    try:
+        import cloudinary
+        import cloudinary_storage
+
+        if not CLOUDINARY_URL and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+            CLOUDINARY_URL = f"cloudinary://{CLOUDINARY_API_KEY}:{CLOUDINARY_API_SECRET}@{CLOUDINARY_CLOUD_NAME}"
+            os.environ['CLOUDINARY_URL'] = CLOUDINARY_URL
+
+        CLOUDINARY_STORAGE = {
+            'CLOUD_NAME': CLOUDINARY_CLOUD_NAME or '',
+            'API_KEY': CLOUDINARY_API_KEY or '',
+            'API_SECRET': CLOUDINARY_API_SECRET or '',
+        }
+
+        INSTALLED_APPS.insert(INSTALLED_APPS.index('whitenoise.runserver_nostatic'), 'cloudinary_storage')
+        INSTALLED_APPS.append('cloudinary')
+        DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+        STORAGES = {
+            'default': {
+                'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+            },
+            'staticfiles': {
+                'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+            },
+        }
+    except ImportError:
+        pass
 
 # Authentication URLs
 LOGIN_URL = 'accounts:login'
